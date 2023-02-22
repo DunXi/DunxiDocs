@@ -126,3 +126,47 @@ print(s3.title()) #首字母大写
 print(s3.upper())#所有字母大写
 print(s3.lower())#所有字母小写
 ```
+
+
+### 键盘录入内容
+    input() 方法
+```python
+    username = input("请输入用户名：")
+    passwd = input("请输入密码：")
+```
+    从键盘录入内容赋值给前面的变量
+
+## 分支结构设计
+### if
+```python
+height = float(input("请输入身高："))
+weight = float(input("请输入体重："))
+print(height)
+print(weight)
+BMI = (weight/height**2)
+
+if BMI >= 28:
+    print("肥胖！！")
+else:
+    print("正常。")
+```
+
+### 多分支if语句
+
+```python
+height = float(input("请输入身高："))
+weight = float(input("请输入体重："))
+print(height)
+print(weight)
+BMI = (weight/height**2)
+
+if BMI < 18.5:
+    print("偏瘦")
+elif BMI < 24:
+    print("正常")
+elif BMI < 28:
+    print("偏胖")
+else:
+    print("肥胖！！")
+```
+
