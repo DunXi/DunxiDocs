@@ -6,7 +6,7 @@ hero:
   text: Learning is like sailing against the current.
   tagline: 学如逆水行舟，不进则退。
   image:
-    src: ./light.png
+    src: ./light.webp
     # src: /dark.png
     alt: VitePress
   actions:
