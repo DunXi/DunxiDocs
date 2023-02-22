@@ -223,7 +223,7 @@ tail 选项 文件名
 
 #### grep命令
 
-![image-20220918155207537](C:\Users\DunXi\AppData\Roaming\Typora\typora-user-images\image-20220918155207537.png)	
+<!-- ![image-20220918155207537](C:\Users\DunXi\AppData\Roaming\Typora\typora-user-images\image-20220918155207537.png)	 -->
 
 #### 命令历史
 
