@@ -88,6 +88,7 @@ function sidebarNetwork() {
         { text: 'IPv6', link: '/network/IPV6' },
         { text: 'Linux', link: '/network/Linux' },
         { text: '计算机网络', link: '/network/计算机网络' },
+        { text: 'Nginx', link: '/network/Nginx' },
         { text: '数据通信技术', link: '/network/数据通信技术' }
       ]
     }
