@@ -86,7 +86,9 @@ function sidebarNetwork() {
       text: 'NetWork',
       items: [
         { text: 'IPv6', link: '/network/IPV6' },
-        { text: 'Linux', link: '/network/Linux' }
+        { text: 'Linux', link: '/network/Linux' },
+        { text: '计算机网络', link: '/network/计算机网络' },
+        { text: '数据通信技术', link: '/network/数据通信技术' }
       ]
     }
   ]

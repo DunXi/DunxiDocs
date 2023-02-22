@@ -4,7 +4,7 @@ import sidebar from './config/sidebar'
 export default defineConfig({
     base: '/DunxiDocs/',
     //页面图标
-    head: [],
+    head: [['link', { rel: 'icon', href: './favicon.ico' }]],
     //资源目录
     srcDir: './src',
     //语言
