@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 import nav from './config/nav'
 import sidebar from './config/sidebar'
 export default defineConfig({
-    base: '/docs/',
+    base: '/DunxiDocs/',
     //页面图标
     head: [],
     //资源目录
