@@ -2,7 +2,7 @@
 
 为了解决ipv4地址不够用的问题
 
-![image-20230209114838446](/Users/dunxi/Library/Application Support/typora-user-images/image-20230209114838446.png)
+![image-20230209114838446](https://bed-1309358403.cos.ap-shanghai.myqcloud.com/img/image-20230209114838446.png)
 
 ## IPv6地址
 
