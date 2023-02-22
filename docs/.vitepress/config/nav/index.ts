@@ -1,7 +1,7 @@
 export default [
   // { text: '🎉前端', link: '/frontend/js/', activeMatch: '/frontend/' },
   // { text: '🔥数据库', link: '/database/mysql/mysql-base', activeMatch: '/database/' },
-  { text: 'Java', link: '/java/java笔记', activeMatch: '/java/' },
+  { text: 'Java', link: '/java/Java笔记', activeMatch: '/java/' },
   // { text: '🥳spring', link: '/spring/springcloud/SpringCloud', activeMatch: '/spring/' },
 
   // { text: 'Spring', link: '/java/spring/Spring', activeMatch: '/spring/' },
