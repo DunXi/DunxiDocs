@@ -179,15 +179,15 @@ D986:9CFF:FE88:EFAA
 
 开启ipv6
 
-![image-20230216113552117](/Users/dunxi/Library/Application Support/typora-user-images/image-20230216113552117.png)
+![image-20230216113552117](https://bed-1309358403.cos.ap-shanghai.myqcloud.com/img/image-20230216113552117.png)
 
 接口开启ipv6功能
 
-![image-20230216113922788](/Users/dunxi/Library/Application Support/typora-user-images/image-20230216113922788.png)
+![image-20230216113922788](https://bed-1309358403.cos.ap-shanghai.myqcloud.com/img/image-20230216113922788.png)
 
 查看ipv6路由表
 
-![image-20230216113825396](/Users/dunxi/Library/Application Support/typora-user-images/image-20230216113825396.png)
+![image-20230216113825396](https://bed-1309358403.cos.ap-shanghai.myqcloud.com/img/image-20230216113825396.png)
 
 
 
