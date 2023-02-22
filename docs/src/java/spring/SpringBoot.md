@@ -2459,7 +2459,7 @@ logging:
 
 ②访问监控接口
 
-http://localhost:81/actuator
+`http://localhost:81/actuator`
 
 ③配置启用监控端点
 
