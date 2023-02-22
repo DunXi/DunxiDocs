@@ -6,7 +6,8 @@ hero:
   text: Learning is like sailing against the current.
   tagline: 学如逆水行舟，不进则退。
   image:
-    src: ./dark.png
+    light: './light.png'
+    dark: './dark.png'
     alt: VitePress
   actions:
     - theme: brand
@@ -18,15 +19,15 @@ hero:
 
 features:
   - icon: 🛠️
-    title: Java学习
-    details: Java从入门到精通
+    title: 编程语言
+    details: Java，Python，Kotlin学习过程
   - icon: 🛠️
-    title: Java学习
-    details: Java从入门到精通
+    title: 操作系统
+    details: Linux，Windows操作系统
 
   - icon: 🛠️
-    title: Java学习
-    details: Java从入门到精通
+    title: 网络安全
+    details: 数据通信技术，IPV6技术
 
 #   - icon:
 #       src: /cool-feature-icon.svg

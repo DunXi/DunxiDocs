@@ -16,7 +16,9 @@ function sidebarJava() {
       text: 'Java',
       items: [
         { text: 'java笔记', link: '/java/Java笔记' },
-        { text: '科学编程学习法', link: '/java/科学编程学习法' }
+        { text: '科学编程学习法', link: '/java/科学编程学习法' },
+        { text: '软件开发环境安装教程', link: '/java/软件开发环境安装教程' }
+        
       ]
     },
     // {
