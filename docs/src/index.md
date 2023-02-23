@@ -18,14 +18,13 @@ hero:
       link: https://github.com/vuejs/vitepress
 
 features:
-  - icon: 🛠️
+  - icon: 📺
     title: 编程语言
     details: Java，Python，Kotlin学习过程
-  - icon: 🛠️
+  - icon: 💻
     title: 操作系统
     details: Linux，Windows操作系统
-
-  - icon: 🛠️
+  - icon: 📡
     title: 网络安全
     details: 数据通信技术，IPV6技术
 
