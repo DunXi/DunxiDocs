@@ -137,6 +137,9 @@ print(s3.lower())#所有字母小写
     从键盘录入内容赋值给前面的变量
 
 ## 分支结构设计
+#选择结构，单分支（if)  ，双分支 （if else) ，多分支 （if elif else)
+#条件后的：不能省略
+#else在双分支或者多分支只能干，都不能有条件
 ### if
 ```python
 height = float(input("请输入身高："))
