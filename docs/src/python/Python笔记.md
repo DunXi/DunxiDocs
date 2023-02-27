@@ -173,3 +173,92 @@ else:
     print("肥胖！！")
 ```
 
+小练习 开发一个四则运算器
+```python
+#开发一个四则运算器
+first = float(input("请输入第一个数："))
+second = float(input("请输入第二个数："))
+type = input("请输入运算方式：")
+result = 0 #用于接收结果
+flag = True #用来判断用户输入是否合法，合法则正常输出结果，不合法，则不输出运算结果
+if type == '+':
+    result = first + second
+elif type == '-':
+    result = first - second
+elif type == '*':
+    result = first * second
+elif type == '/':
+    result = first / second
+else:
+    flag = False
+    print("没有这种计算方式")
+
+if flag:
+    print(result)
+```
+
+### if语句的嵌套
+    小练习
+```python
+#用户取钱
+password1 = "123"
+password2 = "123"
+
+pwd1 = input("请输入登录密码：")
+if pwd1 == password1:
+    pwd2 = input("请输入取款密码：")
+    if pwd2 == password2:
+        print("取款密码输入正确，取款成功")
+    else:
+        print("取款密码输入错误，取款失败")
+else:
+    print("登录密码输入错误，登录失败")
+```
+
+## 循环
+### for
+for循环基本结构
+    
+    for 循环变量 in 遍历结构: 语句块的内容
+        #语句块
+
+python 可以直接遍历字符串
+
+```python
+#通过for循环遍历字符串
+s = 'python'
+for i in s:
+    print(i)
+```
+
+### range()函数
+    range(start,end,step) start 可以取到，end取不到，step步长 
+    如果要取1-100 则应该写 range(1,101)
+    用for循环打印1-100里面的值
+```python
+for i in range(1,101):
+    print(i)
+```
+小练习 
+
+    for循环打印99乘法表
+
+```python
+for i in range(1,10):
+    for j in range(1,i+1):
+        print(f'{j}*{i}=',i*j,end="  ")
+    print()
+```
+### while
+用while循环实现 99乘法表
+```python
+a = 1
+b = 1
+while a < 10:
+    while b <= a:
+        print(f'{b}*{a}=', a * b, end="  ")
+        b+=1
+    print()
+    b = 1
+    a += 1
+```
