@@ -262,3 +262,68 @@ while a < 10:
     b = 1
     a += 1
 ```
+
+### 循环小练习
+多层循环实现银行卡取钱
+```python
+password = "123"
+pwd = "123"
+for l in range(0,3):
+    password1 = input("请输入登录密码：")
+    if password == password1:
+        print("登录成功")
+        for q in range(0,3):
+            pwd1 = input("请输入取款密码：")
+            if pwd1 == pwd:
+                print("取款成功")
+            else:
+                if q < 2:
+                    print("取款密码输入错误，请重新输入")
+                else:
+                    print("密码错误超过三次，请重新登录")
+                continue
+            break
+    else:
+        if l < 2:
+            print("登录失败，请重新输入登录密码")
+        else:
+            print("密码错误超过三次，程序结束")
+```
+
+for循环实现输入10个数，求平均值
+```python
+sum = 0
+for i in range(10):
+    sum += int(input("请输入第"+str(i+1)+"个值:"))
+print("平均值为："+str(sum / 10))
+```
+
+while循环实现输入任意个数，求平均值
+```python
+sum = 0
+i = 1
+while True:
+    sum += int(input("请输入第" + str(i) + "个值:"))
+    i+=1
+    print("继续输入请按y,结束请按n")
+    flag = input()
+    if flag == "y":
+        continue
+    else:
+        break
+print("平均值为："+str(sum / (i-1)))
+```
+一张0.08毫米厚纸对折多少次可以超过珠穆朗玛峰的高度？
+```python
+mm = 0.08
+m = 8848000
+count = 0
+while True:
+    mm *= 2
+    count += 1
+    if mm >= m:
+        print("对折"+str(count)+"次")
+        break
+    else:
+        continue
+```
