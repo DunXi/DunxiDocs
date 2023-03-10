@@ -327,3 +327,51 @@ while True:
     else:
         continue
 ```
+
+#### 鸡兔同笼
+35个头 94只脚
+```python
+'''
+    鸡兔同笼
+    35个头 94只脚
+'''
+all = 35 * 2
+tutui = 94 - all
+tu = tutui / 2
+
+ji = 35 - tu
+
+print(str(ji)+"只鸡")
+print(str(35-ji)+"只兔子")
+```
+
+#### 百钱买百鸡
+```python
+'''
+    百钱买百鸡
+    5文 1公，3文 1母 1文 3雏鸡
+    问 100文 100只鸡  公 母 雏 各多少只
+'''
+for x in range(0, 21):
+    for y in range(0, 34):
+        for z in range(0, 101):
+            if (x * 5 + y * 3 + z / 3 == 100) and (x + y + z == 100):
+                print("公鸡有%d只\t母鸡有%d只\t小鸡有%d只" % (x, y, z))
+
+```
+
+#### 回文数
+```python
+# 回文数
+num = int(input("请输入任意正整数："))
+orgin_num = num
+reversed_num = 0
+while num > 0:
+    reversed_num = num % 10 + reversed_num * 10
+    num //= 10
+
+if reversed_num == orgin_num:
+    print("是回文数")
+else:
+    print("不是回文数")
+```
