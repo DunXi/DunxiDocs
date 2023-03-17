@@ -351,3 +351,77 @@ Ipv6 route-static  目的网段（最终去的地方）
 
 对方掩码  出接口（接口名称）  下一跳（ip地址）
 
+
+
+## OSPF
+
+距离矢量：只知道距离和方向，不知道网络的具体细节，RIP（容易产生环路）、BGP增强型距离矢量（水平分割）
+
+链路状态：知道网络的细节  OSPF、ISIS
+
+- Hello :建立邻居关系
+- DD 数据库描述报文
+- LSR 链路状态请求报文
+- LSU：链路状态更新报文
+- LSACK：确认报文
+
+### Router ID：
+
+#### 	生成方法：
+
+​		手动配置
+
+​		自动生成
+
+​			Loopback：IP地址最大的作为Router ID 
+
+​			物理接口：IP地址最大的作为Router ID
+
+### Hello字段
+
+​	Network mask： 发送Hello的接口掩码
+
+​	Hello Interval： Hello 报文发送时间间隔：默认10s
+
+​	Router Dead Interval： 死亡时间：4倍于Hello间隔，默认40s
+
+​	Designated Router： DR 指定路由器
+
+​	Backup Designated Router： BDR 备份指定路由器
+
+​	Router Priority: DR优先级（0-255）
+
+
+
+### 网络类型
+
+以太网（只要有MAC地址）
+
+广域网协议PPP、HDLC
+
+ATM、帧中继
+
+
+
+网络层（OSPF）：广播网络类型（BMA）  P2P（点对点） 	NBMA  	P2MP
+
+数据链路层：             以太网                 		 PPP、HDLC       ATM、帧中继
+
+特殊：P2MP 没有任何一种数据链路层协议对应
+
+
+
+DR、BDR、DR other
+
+DR other 只能与DR、BDR建立邻接关系
+
+DR other 与 DR other 之间建立邻居关系
+
+BDR 与 DR 之间建立邻接关系
+
+
+
+选举DR、BDR
+
+
+

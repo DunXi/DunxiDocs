@@ -375,3 +375,118 @@ if reversed_num == orgin_num:
 else:
     print("不是回文数")
 ```
+
+## 列表
+### list
+
+定义与使用
+```python
+# 定义
+list1 = [1,2,3,4,5,6]
+# 索引
+print(list1[1])
+# 切片
+print(list1[1:2])
+# 遍历
+for i in list1:
+    print(i)
+
+# 增
+list1.append(123)
+```
+
+#### 列表判断回文数
+```python 
+num = input("请输入整数：")
+list01 = list(num)
+list02 = list(num)
+list01.reverse()
+
+#比较两个列表中元素是否一致，只要有一个元素不一样，不是回文数
+if list01 == list02:
+    print("yes")
+else:
+    print("no")
+```
+
+#### 利用for循环遍历列表
+```python 
+for i in range(len(list01)):
+    if list01[i] != list02[i]:
+        print("no")
+        break
+# for while 配合 else 来判断循环是否是正常结束，没有遇到break则执行else里面的代码
+else:
+    print("yes")
+```
+*注意：for while 配合 else 来判断循环是否是正常结束，没有遇到break则执行else里面的代码*
+
+#### 排序
+排序 sort() 会永远改变列表元素的排列顺序  
+
+sorted() 可以实现临时排序，默认排序方式是升序排列，通过传入参数reverse=True，实现降序
+```python
+score_list = [12,14,435,456,46,67]
+# 排序 sort() 会永远改变列表元素的排列顺序  sorted() 可以实现临时排序，默认排序方式是升序排列，通过传入参数reverse=True，实现降序
+list_num = score_list.sort()
+list_num1 = sorted(score_list)
+print(list_num1)
+```
+
+#### 赋值
+```python 
+a = [1,2,3]
+b = a
+a.append(1)
+b.append(2)
+print(b)
+```
+直接赋值会使两个list同时指向一个地址，两个名字对应的列表一样，改变一个另一个也会改变。
+1. 切片
+为了解决这个问题，我们采用切片的方式复制
+```python
+a = [1,2,3]
+b = a[:]
+a.append(1)
+b.append(2)
+print(a)
+print(b)
+```
+2. copy方法
+
+
+批量提升成绩
+```python
+
+# 遍历列表，挨个改变元素的值
+score_list = [10,56,69,58,90,56,88]
+list01 = []
+print(list01)
+
+for i in score_list:
+    i *= 1.2
+    list01.append(i)
+print(list01)
+
+```
+
+### 列表推导式
+
+
+### 列表小练习
+根据索引定制每日运动计划
+```python 
+run = ["0分钟","20分钟","40分钟","60分钟"]
+swim = ["0米","200米","400米","600米"]
+
+for i in range(len(run)):
+    print(f"{i+1}、{run[i]}")
+index_run = int(input("请选择您要跑的时长选项："))
+
+for i in range(len(swim)):
+    print(f"{i+1}、{run[i]}")
+
+index_swim = int(input("请选择您要跑的时长选项："))
+
+print(f"定制每日运动计划：跑步{run[index_run-1]},游泳：{swim[index_swim-1]}")
+```
