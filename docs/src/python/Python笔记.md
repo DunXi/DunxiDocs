@@ -490,3 +490,85 @@ index_swim = int(input("请选择您要跑的时长选项："))
 
 print(f"定制每日运动计划：跑步{run[index_run-1]},游泳：{swim[index_swim-1]}")
 ```
+
+## 异常处理
+### 异常类型
+| 异常类型          | 说明                                 |
+| ----------------- | ------------------------------------ |
+| IndentationError  | 缩进错误                             |
+| NameError         | 未声明，未初始化对象                 |
+| ImportError       | 导入模块、对象失败                   |
+| ZeroDivisionError | 除零异常                             |
+| SyntaxError       | 语法错误                             |
+| TypeError         | 类型不合适引发的错误                 |
+| ValueError        | 传入无效的参数                       |
+| IndexError        | 索引超出序列范围                     |
+| KeyError          | 请求一个不存在的字典关键字引发的异常 |
+| EOFError          | 读取超过文件结尾                     |
+| AttributeError    | 访问未知对象属性引发的错误           |
+| MemoryError       | 内存溢出错误                         |
+
+try ... except
+
+```python
+try:
+    语句块1：所有可能产生异常的代码
+except 异常的类型：
+    异常处理方式
+```
+
+例子：
+
+```python
+try:
+    num1 = int(input("请输入被除数："))
+    num2 = int(input("请输入除数："))
+    print(num1 / num2)
+except TypeError as e:
+    print("输入类型错误")
+    print(e)
+except ZeroDivisionError as e:
+    print("除零异常")
+    print(e)
+else:
+    print("没问题")
+finally:
+    print("程序结束")
+```
+
+
+
+小练习
+
+````python
+
+'''
+run 20 - 200k
+swim 200 - 100k
+'''
+
+run = ["0分钟","20分钟","40分钟","60分钟"]
+swim = ["0米","200米","400米","600米"]
+
+plan_list = []
+calorie_list = []
+
+for i in range(len(run)):
+    for j in range(len(swim)):
+        print(f"定制每日运动计划：跑步{run[i]}消耗{i*100},游泳：{swim[j]}消耗{j*200} 共{i*100+j*200}")
+        plan_list.append(f"定制每日运动计划：跑步{run[i]}消耗{i*100},游泳：{swim[j]}消耗{j*200} 共{i*100+j*200}")
+        calorie_list.append(i*100+j*200)
+
+print(plan_list)
+print(calorie_list)
+
+print("最大值"+str(max(calorie_list)))
+print("最小值"+str(min(calorie_list)))
+
+# 遍历集合，寻找能被200整除的数
+for i in calorie_list:
+    if i % 200 == 0:
+        print(i)
+
+````
+
