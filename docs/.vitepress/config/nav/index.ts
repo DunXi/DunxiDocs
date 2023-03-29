@@ -3,7 +3,7 @@ export default [
   // { text: '🔥数据库', link: '/database/mysql/mysql-base', activeMatch: '/database/' },
   { text: 'Java', link: '/java/Java笔记', activeMatch: '/java/' },
   // { text: '🥳spring', link: '/spring/springcloud/SpringCloud', activeMatch: '/spring/' },
-
+  { text: '数据库', link: '/数据库/mysql', activeMatch: '/mysql/' },
   // { text: 'Spring', link: '/java/spring/Spring', activeMatch: '/spring/' },
   { text: 'Kotlin', link: '/kotlin/', activeMatch: '/kotlin/' },
   { text: 'Python', link: '/python/Python笔记', activeMatch: '/python/' },
