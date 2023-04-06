@@ -595,3 +595,59 @@ for i in calorie_list:
 
 ````
 
+
+
+## 字典
+
+dict,{key1:value1,key2:value2}
+
+字典中，所有的元素均为键值对，字典中需要是不可变的数据类型，数值字符串合元组，列表不可以作为键
+
+字典中的值可以是数据类型
+
+### 使用{}创建
+
+````python
+dict01 = { } # 空字典
+
+dict02 = {'name':'zhangsan','age':19,'height':180}
+
+tuple01 = ('name','Tom')
+
+dict02={tuple01:'张三','age':28,'height':189.2}
+
+print(dict01,dict02)
+````
+
+
+
+### 使用dict() 进行创建
+
+```python
+tuple01 = ('na','Tm')
+
+dict02={tuple01:'张三','age':28,'height':189.2}
+
+print(dict01,dict02)
+
+dict04 = dict()
+
+dict05 = dict(tuple01)
+
+print(dict05)
+
+list01 = [[1,[2]],tuple01]
+
+dict06 = dict(list01)
+
+print(dict06)
+```
+
+**注意：字典中的值可以是任意数据类型，但是列表不能为键**
+
+
+
+
+
+
+

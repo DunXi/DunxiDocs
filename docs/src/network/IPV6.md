@@ -425,3 +425,51 @@ BDR 与 DR 之间建立邻接关系
 
 
 
+每个设备都会为每个链路产生一个Link-LSA，仅在始发链路内泛洪。
+
+#### Link-LSA的作用：
+
+- 向该链路上其他路由器通告本接口的链路本地地址
+- 向该链路上其他路由器通告本接口的IPv6前缀列表
+- 向该链路上其他路由器通告本链路始发的Network-LSA中设置的可选项
+
+
+
+在OSPFv2中，可以通过type1和type2的LSA来描述拓扑信息和网段信息，而OSPFv3的此两类LSA进包含拓扑信息
+
+
+
+OSPF用于IP网络中，TCP/IP协议栈中，属于网络层
+
+ISIS即可用于CLNP网络中也可以用于IP网络中，OSI协议栈，属于数据链路层
+
+
+
+## ISIS
+
+49.0001     .0000.0000.001         .00
+
+区域ID        	system ID(Router ID)             SEL（IP）
+
+
+
+### 路由器的分类以及邻居建立要求：
+
+Level 1：Level-1只能与属于同一区域的Level-1和Level1-2路由器建立邻居关系
+
+Level 2：可以与相同或不同区域的Level2、Level1-2建立邻居关系
+
+Level 1-2（默认）：可以与相同区域的Level1，不同区域的Level2、Level1-2建立邻居关系
+
+
+
+#### 配置
+
+1. 配置IP地址
+2. 配置ISIS
+   1. ISIS 1 进入isis视图
+   2. [Huawei-isis-1]is-Level xxx 更改路由器类型
+   3. [Huawei-isis-1]Network-entity xxx 配置net地址
+
+
+
