@@ -470,6 +470,15 @@ Level 1-2（默认）：可以与相同区域的Level1，不同区域的Level2�
    1. ISIS 1 进入isis视图
    2. [Huawei-isis-1]is-Level xxx 更改路由器类型
    3. [Huawei-isis-1]Network-entity xxx 配置net地址
+   4. [Huawei-Ethernet0/0/0]isis enable  接口开启isis
+
+
+
+OSPF划分区域： 接口
+
+ISIS划分区域 路由器  Level2、Level1-2
+
+
 
 
 

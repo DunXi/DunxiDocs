@@ -3,7 +3,31 @@ function sidebarDatabase() {
     {
       text: 'MySql',
       items: [
-        { text: 'mysql基础', link: '/database/mysql/mysql-base' }
+        { text: 'mysql基础', link: '/database/mysql' }
+        // { text: 'navicat安装', link: '/database/mysql/navicat' }
+      ]
+    }
+  ]
+}
+
+function sidebarPython() {
+  return [
+    {
+      text: 'Python',
+      items: [
+        { text: 'Python笔记', link: '/python/Python' }
+        // { text: 'navicat安装', link: '/database/mysql/navicat' }
+      ]
+    }
+  ]
+}
+
+function sidebarBlockchain() {
+  return [
+    {
+      text: '区块链',
+      items: [
+        { text: 'Solidity笔记', link: '/blockchain/Solidity' }
         // { text: 'navicat安装', link: '/database/mysql/navicat' }
       ]
     }
@@ -15,7 +39,7 @@ function sidebarJava() {
     {
       text: 'Java',
       items: [
-        { text: 'java笔记', link: '/java/Java笔记' },
+        { text: 'java笔记', link: '/java/Java' },
         { text: '科学编程学习法', link: '/java/科学编程学习法' },
         { text: '软件开发环境安装教程', link: '/java/软件开发环境安装教程' }
         
@@ -111,8 +135,9 @@ function sidebarFrameWork() {
 export default {
   '/database/': sidebarDatabase(),
   '/java/': sidebarJava(),
-  '/frontend/': sidebarFrontend(),
+  '/python': sidebarPython(),
   '/spring': sidebarSpring(),
   '/network': sidebarNetwork(),
-  '/framework':sidebarFrameWork()
+  '/blockchain': sidebarBlockchain()
+  // '/framework':sidebarFrameWork()
 }

@@ -12,7 +12,7 @@ export default defineConfig({
     //标题
     title: 'DunxiDocs',
     // //seo优化
-    // description: 'Vite & Vue powered static site generator.',
+    description: 'Vite & Vue powered static site generator.',
     //最后更新时间
     lastUpdated: true,
     //生成干净的url
