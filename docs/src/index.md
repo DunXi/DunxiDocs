@@ -12,7 +12,7 @@ hero:
   actions:
     - theme: brand
       text: 快速开始
-      link: /java/Java笔记
+      link: /java/Java
     - theme: alt
       text: View on GitHub
       link: https://github.com/vuejs/vitepress

@@ -11,8 +11,8 @@ export default defineConfig({
     lang: 'zh-CN',
     //标题
     title: 'DunxiDocs',
-    // //seo优化
-    description: 'Vite & Vue powered static site generator.',
+    //seo优化
+    // description: 'Vite & Vue powered static site generator.',
     //最后更新时间
     lastUpdated: true,
     //生成干净的url
