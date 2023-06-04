@@ -488,9 +488,6 @@ print(list01)
 
 
 
-
-
-
 ### 列表小练习
 根据索引定制每日运动计划
 ```python 
@@ -598,24 +595,18 @@ for i in calorie_list:
 ## 字典
 
 dict,{key1:value1,key2:value2}
-
 字典中，所有的元素均为键值对，字典中需要是不可变的数据类型，数值字符串合元组，列表不可以作为键
-
 字典中的值可以是数据类型
 
 ### 使用{}创建
 
-````python
+```python
 dict01 = { } # 空字典
-
 dict02 = {'name':'zhangsan','age':19,'height':180}
-
 tuple01 = ('name','Tom')
-
 dict02={tuple01:'张三','age':28,'height':189.2}
-
 print(dict01,dict02)
-````
+```
 
 
 

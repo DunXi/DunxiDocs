@@ -15,8 +15,7 @@ function sidebarPython() {
     {
       text: 'Python',
       items: [
-        { text: 'Python笔记', link: '/python/Python' }
-        // { text: 'navicat安装', link: '/database/mysql/navicat' }
+        { text: 'Python笔记', link: '/python/' }
       ]
     }
   ]

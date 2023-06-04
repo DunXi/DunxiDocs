@@ -1462,5 +1462,280 @@ contract C is A {
 
 
 
+## 抽象合约和接口
+
+​	这一讲，我们用`ERC721`的接口合约为例介绍`solidity`中的抽象合约（`abstract`）和接口（`interface`），帮助大家更好的理解`ERC721`标准。
+
+### 抽象合约
+
+如果一个智能合约里至少有一个未实现的函数，即某个函数缺少主体`{}`中的内容，则必须将该合约标为`abstract`，不然编译会报错；另外，未实现的函数需要加`virtual`，以便子合约重写。拿我们之前的[插入排序合约](https://github.com/AmazingAng/WTFSolidity/tree/main/07_InsertionSort)为例，如果我们还没想好具体怎么实现插入排序函数，那么可以把合约标为`abstract`，之后让别人补写上。
+
+```solidity
+abstract contract InsertionSort{
+    function insertionSort(uint[] memory a) public pure virtual returns(uint[] memory);
+}
+```
+
+**注意：**被标记为 abstract 的合约不能被部署。因为 abstract 合约是一种未实现完整的合约，其中至少有一个函数被标记为 abstract，这意味着该函数的实现必须由子合约提供。因此，如果要部署一个 abstract 合约，必须先实现所有 abstract 函数的子合约，并在合约部署时同时部署这些子合约，否则无法成功部署 abstract 合约。
+
+需要注意的是，子合约实现所有 abstract 函数后，abstract 合约才可以被实例化。而如果一个合约被标记为 abstract，意味着它不会被编译成字节码，也不能被部署到区块链上。
+
+### 接口
+
+接口类似于抽象合约，但它不实现任何功能。接口的规则：
+
+1. 不能包含状态变量
+2. 不能包含构造函数
+3. 不能继承除接口外的其他合约
+4. 所有函数都必须是external且不能有函数体
+5. 继承接口的合约必须实现接口定义的所有功能
+
+虽然接口不实现任何功能，但它非常重要。接口是智能合约的骨架，定义了合约的功能以及如何触发它们：如果智能合约实现了某种接口（比如`ERC20`或`ERC721`），其他Dapps和智能合约就知道如何与它交互。因为接口提供了两个重要的信息：
+
+1. 合约里每个函数的`bytes4`选择器，以及基于它们的函数签名`函数名(每个参数类型）`。
+2. 接口id（更多信息见[EIP165](https://eips.ethereum.org/EIPS/eip-165)）
+
+另外，接口与合约`ABI`（Application Binary Interface）等价，可以相互转换：编译接口可以得到合约的`ABI`，利用[abi-to-sol工具](https://gnidan.github.io/abi-to-sol/)也可以将`ABI json`文件转换为`接口sol`文件。
+
+我们以`ERC721`接口合约`IERC721`为例，它定义了3个`event`和9个`function`，所有`ERC721`标准的NFT都实现了这些函数。我们可以看到，接口和常规合约的区别在于每个函数都以`;`代替函数体`{ }`结尾。
+
+```solidity
+interface IERC721 is IERC165 {
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+    
+    function balanceOf(address owner) external view returns (uint256 balance);
+
+    function ownerOf(uint256 tokenId) external view returns (address owner);
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+
+    function transferFrom(address from, address to, uint256 tokenId) external;
+
+    function approve(address to, uint256 tokenId) external;
+
+    function getApproved(uint256 tokenId) external view returns (address operator);
+
+    function setApprovalForAll(address operator, bool _approved) external;
+
+    function isApprovedForAll(address owner, address operator) external view returns (bool);
+
+    function safeTransferFrom( address from, address to, uint256 tokenId, bytes calldata data) external;
+}
+```
+
+
+
+### IERC721事件
+
+`IERC721`包含3个事件，其中`Transfer`和`Approval`事件在`ERC20`中也有。
+
+- `Transfer`事件：在转账时被释放，记录代币的发出地址`from`，接收地址`to`和`tokenid`。
+- `Approval`事件：在授权时释放，记录授权地址`owner`，被授权地址`approved`和`tokenid`。
+- `ApprovalForAll`事件：在批量授权时释放，记录批量授权的发出地址`owner`，被授权地址`operator`和授权与否的`approved`。
+
+### IERC721函数
+
+- `balanceOf`：返回某地址的NFT持有量`balance`。
+- `ownerOf`：返回某`tokenId`的主人`owner`。
+- `transferFrom`：普通转账，参数为转出地址`from`，接收地址`to`和`tokenId`。
+- `safeTransferFrom`：安全转账（如果接收方是合约地址，会要求实现`ERC721Receiver`接口）。参数为转出地址`from`，接收地址`to`和`tokenId`。
+- `approve`：授权另一个地址使用你的NFT。参数为被授权地址`approve`和`tokenId`。
+- `getApproved`：查询`tokenId`被批准给了哪个地址。
+- `setApprovalForAll`：将自己持有的该系列NFT批量授权给某个地址`operator`。
+- `isApprovedForAll`：查询某地址的NFT是否批量授权给了另一个`operator`地址。
+- `safeTransferFrom`：安全转账的重载函数，参数里面包含了`data`。
+
+### 什么时候使用接口？
+
+如果我们知道一个合约实现了`IERC721`接口，我们不需要知道它具体代码实现，就可以与它交互。
+
+无聊猿`BAYC`属于`ERC721`代币，实现了`IERC721`接口的功能。我们不需要知道它的源代码，只需知道它的合约地址，用`IERC721`接口就可以与它交互，比如用`balanceOf()`来查询某个地址的`BAYC`余额，用`safeTransferFrom()`来转账`BAYC`。
+
+```solidity
+contract interactBAYC {
+    // 利用BAYC地址创建接口合约变量（ETH主网）
+    IERC721 BAYC = IERC721(0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D);
+
+    // 通过接口调用BAYC的balanceOf()查询持仓量
+    function balanceOfBAYC(address owner) external view returns (uint256 balance){
+        return BAYC.balanceOf(owner);
+    }
+
+    // 通过接口调用BAYC的safeTransferFrom()安全转账
+    function safeTransferFromBAYC(address from, address to, uint256 tokenId) external{
+        BAYC.safeTransferFrom(from, to, tokenId);
+    }
+}
+```
+
+
+
+### 在Remix上验证
+
+- 抽象合约示例（简单的演示代码如图所示） ![14-1](https://www.wtf.academy/assets/images/14-1-044a8470458eea92577e72cdbdd8dd24.png)
+- 接口示例（简单的演示代码如图所示） ![14-2](https://www.wtf.academy/assets/images/14-2-f9d96ce31ea1e53ff8631a02022a2929.png)
+
+### 总结
+
+这一讲，我介绍了`solidity`中的抽象合约（`abstract`）和接口（`interface`），他们都可以写模版并且减少代码冗余。我们还讲了`ERC721`接口合约`IERC721`，以及如何利用它与无聊猿`BAYC`合约进行交互。
+
+
+
+
+
+## 异常
+
+​	介绍`solidity`三种抛出异常的方法：`error`，`require`和`assert`，并比较三种方法的`gas`消耗。
+
+​	写智能合约经常会出`bug`，`solidity`中的异常命令帮助我们`debug`。
+
+### Error
+
+`error`是`solidity 0.8版本`新加的内容，方便且高效（省`gas`）地向用户解释操作失败的原因。人们可以在`contract`之外定义异常。下面，我们定义一个`TransferNotOwner`异常，当用户不是代币`owner`的时候尝试转账，会抛出错误：
+
+```solidity
+error TransferNotOwner(); // 自定义error
+```
+
+
+
+在执行当中，`error`必须搭配`revert`（回退）命令使用。
+
+```solidity
+    function transferOwner1(uint256 tokenId, address newOwner) public {
+        if(_owners[tokenId] != msg.sender){
+            revert TransferNotOwner();
+        }
+        _owners[tokenId] = newOwner;
+    }
+```
+
+
+
+我们定义了一个`transferOwner1()`函数，它会检查代币的`owner`是不是发起人，如果不是，就会抛出`TransferNotOwner`异常；如果是的话，就会转账。
+
+
+
+在 Solidity 中，Error 可以带有参数。Solidity 提供了一种称为 Error 的特殊类型，可以用于在合约中抛出错误并在外部代码中捕获和处理。可以在 Error 类型中定义参数，以便在抛出错误时提供更具体的错误信息。例如：
+
+```solidity
+error InsufficientBalance(uint256 available, uint256 required);
+
+function withdraw(uint256 amount) public {
+    if (balance < amount) {
+        revert InsufficientBalance({available: balance, required: amount});
+    }
+    // ...
+}
+```
+
+在上面的代码中，InsufficientBalance 是一个 Error 类型，带有两个参数 available 和 required，表示可用余额和所需金额。在 withdraw 函数中，如果合约余额不足，则会抛出 InsufficientBalance 错误，并提供可用余额和所需金额作为参数，以便在外部代码中更好地理解错误原因。
+
+
+
+### Require
+
+`require`命令是`solidity 0.8版本`之前抛出异常的常用方法，目前很多主流合约仍然还在使用它。它很好用，唯一的缺点就是`gas`随着描述异常的字符串长度增加，比`error`命令要高。使用方法：`require(检查条件，"异常的描述")`，当检查条件不成立的时候，就会抛出异常。
+
+我们用`require`命令重写一下上面的`transferOwner`函数：
+
+```solidity
+    function transferOwner2(uint256 tokenId, address newOwner) public {
+        require(_owners[tokenId] == msg.sender, "Transfer Not Owner");
+        _owners[tokenId] = newOwner;
+    }
+```
+
+
+
+### Assert
+
+`assert`命令一般用于程序员写程序`debug`，因为它不能解释抛出异常的原因（比`require`少个字符串）。它的用法很简单，`assert(检查条件）`，当检查条件不成立的时候，就会抛出异常。
+
+我们用`assert`命令重写一下上面的`transferOwner`函数：
+
+```solidity
+    function transferOwner3(uint256 tokenId, address newOwner) public {
+        assert(_owners[tokenId] == msg.sender);
+        _owners[tokenId] = newOwner;
+    }
+```
+
+
+
+### 在remix上验证
+
+1. 输入任意`uint256`数字和非0地址，调用`transferOwner1`，也就是`error`方法，控制台抛出了异常并显示我们自定义的`TransferNotOwner`。 ![13 1.png](https://www.wtf.academy/assets/images/15-1-108068d779547bb5f2bbe63c4e350fab.png)
+2. 输入任意`uint256`数字和非0地址，调用`transferOwner2`，也就是`require`方法，控制台抛出了异常并打印出`require`中的字符串。 ![13 2.png](https://www.wtf.academy/assets/images/15-2-5cd86c90ad4a466946c842c346a5ee18.png)
+3. 输入任意`uint256`数字和非0地址，调用`transferOwner3`，也就是`assert`方法，控制台只抛出了异常。 ![13 3.png](https://www.wtf.academy/assets/images/15-3-390b3562e3410dd9f6256b66e8d2610f.png)
+
+### 三种方法的gas比较
+
+我们比较一下三种抛出异常的`gas`消耗，通过remix控制台的Debug按钮，能查到每次函数调用的`gas`消耗分别如下：
+
+1. **`error`方法`gas`消耗**：24445
+2. **`require`方法`gas`消耗**：24743
+3. **`assert`方法`gas`消耗**：24446
+
+我们可以看到，`error`方法`gas`最少，其次是`assert`，`require`方法消耗`gas`最多！因此，`error`既可以告知用户抛出异常的原因，又能省`gas`，大家要多用！（注意，由于部署测试时间的不同，每个函数的`gas`消耗会有所不同，但是比较结果会是一致的。）
+
+### 总结
+
+这一讲，我们介绍`solidity`三种抛出异常的方法：`error`，`require`和`assert`，并比较了三种方法的`gas`消耗。结论：`error`既可以告知用户抛出异常的原因，又能省`gas`。
+
+
+
+## 重载
+
+`solidity`中允许函数进行重载（`overloading`），即名字相同但输入参数类型不同的函数可以同时存在，他们被视为不同的函数。注意，`solidity`不允许修饰器（`modifier`）重载。
+
+### 函数重载
+
+举个例子，我们可以定义两个都叫`saySomething()`的函数，一个没有任何参数，输出`"Nothing"`；另一个接收一个`string`参数，输出这个`string`。
+
+```solidity
+function saySomething() public pure returns(string memory){
+    return("Nothing");
+}
+
+function saySomething(string memory something) public pure returns(string memory){
+    return(something);
+}
+```
+
+
+
+最终重载函数在经过编译器编译后，由于不同的参数类型，都变成了不同的函数选择器（selector）。关于函数选择器的具体内容可参考[Solidity极简入门: 29. 函数选择器Selector](https://github.com/AmazingAng/WTFSolidity/tree/main/29_Selector)。
+
+以 `Overloading.sol` 合约为例，在 Remix 上编译部署后，分别调用重载函数 `saySomething()` 和 `saySomething(string memory something)`，可以看到他们返回了不同的结果，被区分为不同的函数。 ![img](https://www.wtf.academy/assets/images/16-1-02e5e7643e93251800ec337e341a58a4.jpg)
+
+### 实参匹配（Argument Matching）
+
+在调用重载函数时，会把输入的实际参数和函数参数的变量类型做匹配。 如果出现多个匹配的重载函数，则会报错。下面这个例子有两个叫`f()`的函数，一个参数为`uint8`，另一个为`uint256`：
+
+```solidity
+    function f(uint8 _in) public pure returns (uint8 out) {
+        out = _in;
+    }
+
+    function f(uint256 _in) public pure returns (uint256 out) {
+        out = _in;
+    }
+```
+
+
+
+我们调用`f(50)`，因为`50`既可以被转换为`uint8`，也可以被转换为`uint256`，因此会报错。
+
+### 总结
+
+这一讲，我们介绍了`solidity`中函数重载的基本用法：名字相同但输入参数类型不同的函数可以同时存在，他们被视为不同的函数。
+
+
+
+
+
 
 
