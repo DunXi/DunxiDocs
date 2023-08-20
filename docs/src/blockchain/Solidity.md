@@ -64,6 +64,57 @@ contract HelloWeb3{
 
 
 
+## Gas费
+
+你需要支付多少以太币来进行一次交易？ 你需要支付 gas 消耗量 * gas 价格 的以太币，其中：
+
+gas 是计算单位\
+
+gas 消耗量是交易中使用的总 gas 数量\
+
+gas 价格是你愿意支付的每单位 gas 的以太币\
+
+具有更高 gas 价格的交易具有更高的优先级被包含在区块中。
+未使用的 gas 将被退还。
+
+燃气限制
+你可以花费的 gas 有两个上限\
+
+- gas 限制（你为交易设置的最大 gas 量）\
+- 区块 gas 限制（网络设置的区块中允许的最大 gas 量）
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract Gas {
+uint public i = 0;
+
+  // 使用完你发送的所有 gas 会导致你的交易失败。
+  // 状态更改被撤销。
+  // 花费的 gas 不会被退还。
+  function forever() public {
+      // 在这里，我们运行一个循环直到花费所有的 gas
+      // 交易失败
+      while (true) {
+          i += 1;
+      }
+  }
+}
+```
+
+
+
+代码术语解释：
+
+- gas：以太坊中的计算单位。
+- gas spent：在交易中使用的 gas 总数。
+- gas price：为每单位 gas 所支付的以太币数量。
+- gas limit：交易中可使用的最大 gas 数量，由用户设置。
+- 区块 gas 限制：每个区块中允许的最大 gas 数量，由网络设置。
+
+
+
 ### Solidity中的变量类型
 
 1. **数值类型(Value Type)**：包括布尔型，整数型等等，这类变量赋值时候直接传递数值。
@@ -72,6 +123,8 @@ contract HelloWeb3{
 4. **函数类型(Function Type)**：`Solidity`文档里把函数归到数值类型，但我觉得他跟其他类型差别很大，所以单独分一类。
 
 我们只介绍一些常用的类型，不常用的不讲。这篇介绍数值类型，第3讲介绍函数类型，第4讲介绍引用和映射。
+
+
 
 ## 数值类型
 
@@ -436,6 +489,333 @@ solidity官方文档里把函数归到数值类型，但我觉得差别很大，
 ### 总结
 
 这一讲，我们介绍函数的返回值`return`和`returns`，包括：返回多种变量，命名式返回，以及利用解构式赋值读取全部和部分返回值。
+
+
+
+## call() 函数
+
+> 本文介绍了 Solidity 中的 `call()` 函数及其使用。
+
+call 是与其他合约交互的低级函数。
+
+当您只是通过调用回退函数发送 Ether 时，这是推荐使用的方法。
+
+但是，这不是调用现有函数的推荐方式。
+
+不推荐低级调用的几个原因
+
+- 还原不会冒泡
+- 绕过类型检查
+- 函数存在性检查被省略
+
+### 示例
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract Receiver {
+    event Received(address caller, uint amount, string message);
+
+    fallback() external payable {
+        emit Received(msg.sender, msg.value, "Fallback was called");
+    }
+
+    function foo(string memory _message, uint _x) public payable returns (uint) {
+        emit Received(msg.sender, msg.value, _message);
+
+        return _x + 1;
+    }
+}
+
+contract Caller {
+    event Response(bool success, bytes data);
+
+    // Let's imagine that contract Caller does not have the source code for the
+    // contract Receiver, but we do know the address of contract Receiver and the function to call.
+    function testCallFoo(address payable _addr) public payable {
+        // You can send ether and specify a custom gas amount
+        (bool success, bytes memory data) = _addr.call{value: msg.value, gas: 5000}(
+            abi.encodeWithSignature("foo(string,uint256)", "call foo", 123)
+        );
+
+        emit Response(success, data);
+    }
+
+    // Calling a function that does not exist triggers the fallback function.
+    function testCallDoesNotExist(address payable _addr) public payable {
+        (bool success, bytes memory data) = _addr.call{value: msg.value}(
+            abi.encodeWithSignature("doesNotExist()")
+        );
+
+        emit Response(success, data);
+    }
+}
+```
+
+
+
+在上面的示例中，我们定义了两个智能合约 `Caller` 和 `Callee`。`Caller` 合约包含一个名为 `testCall()` 的函数，该函数向指定地址发送 1 wei 的以太币，并调用 `Callee` 合约中的 `foo()` 函数。当 `foo()` 函数被调用时，它将返回一个编码后的字符串和数字。
+
+请注意，我们使用了 `call()` 函数来实现这个过程，并使用 `abi.encodeWithSignature()` 函数对参数进行编码。
+
+这是一个测试从多重签名钱包发送交易的合同：
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract TestContract {
+    uint public i;
+
+    function callMe(uint j) public {
+        i += j;
+    }
+
+    function getData() public pure returns (bytes memory) {
+        return abi.encodeWithSignature("callMe(uint256)", 123);
+    }
+}
+```
+
+
+
+### 详解
+
+#### `call()` 函数概述
+
+`call()` 是 Solidity 中的一个特殊函数，用于调用其他合约中的函数。在调用 `call()` 函数时，我们需要提供要调用函数的地址、以太币数量和参数。`call()` 函数将返回一个布尔值和一个 `bytes` 类型的数组，用于表示调用是否成功以及包含返回值的数据。
+
+#### 函数编码
+
+在使用 `call()` 函数调用其他合约中的函数时，我们需要对函数参数进行编码。Solidity 提供了多种编码函数，可以根据不同的参数类型来选择使用适当的函数。例如，我们可以使用 `abi.encodeWithSignature()` 函数对字符串和数字参数进行编码。
+
+```solidity
+bytes memory data = abi.encodeWithSignature("foo(string,uint256)", "hello", 123);
+```
+
+
+
+在上面的示例中，我们使用 `abi.encodeWithSignature()` 函数对 `"hello"` 和 `123` 进行编码，并将编码后的字节数组存储在名为 `data` 的变量中。
+
+请注意，使用错误的编码方式可能会导致调用失败或产生错误的返回值。
+
+#### `address payable` 类型
+
+在 Solidity 中，可以使用 `address payable` 类型来表示一个既可以接收以太币又可以发送以太币的地址。
+
+```solidity
+address payable myAddress = payable(0x123);
+```
+
+
+
+在上面的示例中，我们将地址 `0x123` 转换为 `address payable` 类型，并将其存储在名为 `myAddress` 的变量中。
+
+请注意，只有具有 `payable` 函数的地址才能被转换为 `address payable` 类型。
+
+### 总结
+
+通过使用 `call()` 函数和正确的函数参数编码方式，Solidity 可以方便地处理智能合约之间的函数调用。程序员可以使用这些工具来执行复杂的逻辑或转移场景，并确保正确地处理返回值和错误情况。通过使用 `address payable` 类型，程序员可以轻松地实现与其他合约交互并处理以太币转移。
+
+
+
+## delegatecall() 函数
+
+> 本文介绍了 Solidity 中的 `delegatecall()` 函数及其使用。
+
+delegatecall 是类似于调用的低级函数。
+
+当合约A对合约B执行delegatecall时，执行B的代码 与合约 A 的存储，msg.sender 和 msg.value。
+
+### 示例
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+// NOTE: Deploy this contract first
+contract B {
+    // NOTE: storage layout must be the same as contract A
+    uint public num;
+    address public sender;
+    uint public value;
+
+    function setVars(uint _num) public payable {
+        num = _num;
+        sender = msg.sender;
+        value = msg.value;
+    }
+}
+
+contract A {
+    uint public num;
+    address public sender;
+    uint public value;
+
+    function setVars(address _contract, uint _num) public payable {
+        // A's storage is set, B is not modified.
+        (bool success, bytes memory data) = _contract.delegatecall(
+            abi.encodeWithSignature("setVars(uint256)", _num)
+        );
+    }
+}
+```
+
+
+
+在上面的示例中，我们定义了两个智能合约 `A` 和 `B`。`A` 合约包含一个名为 `foo()` 的函数，该函数接受两个数字参数并返回它们的总和。`B` 合约包含一个名为 `bar()` 的函数，该函数向另一个合约地址发送一个 `delegatecall()`，并将 `foo()` 函数的输入参数 `_i` 和 `_j` 作为参数传递。`bar()` 函数将返回 `foo()` 函数返回值的总和。
+
+请注意，我们使用了 `delegatecall()` 函数来实现这个过程，并使用 `abi.encodeWithSignature()` 函数对参数进行编码。
+
+### 详解
+
+#### `delegatecall()` 函数概述
+
+`delegatecall()` 是 Solidity 中的一个特殊函数，用于在当前合约的上下文中执行其他合约的代码。与 `call()` 不同，`delegatecall()` 将使用当前合约的存储器、状态变量和 ETH 余额。这意味着我们可以将另一个合约的代码视为当前合约的一部分，并且可以使用当前合约的所有资源。
+
+#### 函数编码
+
+在使用 `delegatecall()` 函数调用其他合约中的函数时，我们需要对函数参数进行编码。Solidity 提供了多种编码函数，可以根据不同的参数类型来选择使用适当的函数。例如，我们可以使用 `abi.encodeWithSignature()` 函数对数字参数进行编码。
+
+```solidity
+bytes memory payload = abi.encodeWithSignature("foo(uint256,uint256)", _i, _j);
+```
+
+
+
+在上面的示例中，我们使用 `abi.encodeWithSignature()` 函数对 `_i` 和 `_j` 进行编码，并将编码后的字节数组存储在名为 `payload` 的变量中。
+
+请注意，使用错误的编码方式可能会导致调用失败或产生错误的返回值。
+
+#### `require()` 函数
+
+使用 `require()` 函数来检查条件是否满足，并在条件不满足时抛出异常。
+
+```solidity
+require(success);
+```
+
+
+
+在上面的示例中，我们使用 `require()` 函数来检查 `delegatecall()` 是否成功，并在不成功时抛出异常。
+
+### 总结
+
+通过使用 `delegatecall()` 函数和正确的函数参数编码方式，Solidity 可以方便地处理智能合约之间的代码共享。程序员可以使用这些工具来执行复杂的逻辑或转移场景，并确保正确地处理返回值和错误情况。通过使用 `require()` 函数，程序员可以轻松地检查条件是否满足，并在必要时抛出异常。
+
+
+
+​		
+
+## payable 函数
+
+> 本文介绍了 Solidity 中的 `payable` 函数修饰符，它允许合约接收以太币。
+
+声明为 payable 的函数和地址可以将以太币接收到合约中。
+
+### 示例
+
+```solidity
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.17;
+
+contract Payable {
+    // Payable地址可以接收以太币
+    address payable public owner;
+
+    // Payable构造函数可以接收以太币
+    constructor() payable {
+        owner = payable(msg.sender);
+    }
+
+    // 存入以太币到智能合约的函数。
+    // 与一些以太币一起调用此函数。
+    // 智能合约的余额将自动更新。
+    function deposit() public payable {}
+
+    // 与一些以太币一起调用此函数。
+    // 由于此函数不可支付，因此该函数将抛出错误。
+    function notPayable() public {}
+
+    // 从智能合约中提取所有以太币的函数。
+    function withdraw() public {
+        // 获取存储在此合约中的以太币数量
+        uint amount = address(this).balance;
+
+        // 将所有以太币发送给拥有者
+        // 由于所有者的地址是可支付的，因此其可以接收以太币
+        (bool success, ) = owner.call{value: amount}("");
+        require(success, "Failed to send Ether");
+    }
+
+    // 将以太币从此合约转移到输入地址的函数
+    function transfer(address payable _to, uint _amount) public {
+        // 注意，“to”被声明为payable
+        (bool success, ) = _to.call{value: _amount}("");
+        require(success, "Failed to send Ether");
+    }
+}
+```
+
+
+
+在上面的示例中，我们定义了一个名为 `ReceiveEther` 的合约，并使用 `receive()` 函数作为其默认函数。如果有人向该合约发送以太币，则该函数将被调用。
+
+我们还使用了 `payable` 修饰符来标识 `sendEther()` 函数，该函数允许向合约发送以太币。通过 `getBalance()` 函数，我们可以获取该合约的余额。
+
+### 详解
+
+#### `receive()` 函数
+
+当有人向合约发送以太币时，默认函数将被调用。默认函数是没有名称和参数的函数，如下所示：
+
+```solidity
+receive() external payable {
+    // 处理接收到的以太币
+}
+```
+
+
+
+请注意，如果合约没有定义 `receive()` 函数，并且有人向其发送以太币，则将会抛出异常并返还所有的以太币。
+
+#### `payable` 修饰符
+
+使用 `payable` 修饰符修饰一个函数可以使该函数接收以太币。
+
+```solidity
+function myFunction() external payable {
+    // 处理接收到的以太币
+}
+```
+
+
+
+在上面的示例中，我们使用 `payable` 修饰符来标识 `myFunction()` 函数，该函数允许接收以太币。
+
+请注意，只有具有 `payable` 修饰符的函数才能接收以太币。
+
+#### 合约余额
+
+要获取合约的当前余额，可以使用 `address(this).balance`。
+
+```solidity
+function getBalance() external view returns (uint) {
+    return address(this).balance;
+}
+```
+
+
+
+在上面的示例中，我们定义了一个名为 `getBalance()` 的函数，该函数返回该合约的余额。请注意，我们使用 `view` 关键字来标识该函数不会修改合约状态。
+
+### 总结
+
+通过使用 `payable` 修饰符以及默认函数，Solidity 可以方便地处理合约接收以太币的情形。程序员可以使用这些工具来执行复杂的转账逻辑或支付场景，并在需要时获取当前合约的余额信息。
+
+
 
 
 
@@ -959,6 +1339,8 @@ contract C {
 
 `Solidity`的控制流与其他语言类似，主要包含以下几种：
 
+### 条件判断
+
 1. `if-else`
 
 ```solidity
@@ -972,6 +1354,8 @@ function ifElseTest(uint256 _number) public pure returns(bool){
 ```
 
 
+
+### 循环
 
 1. `for循环`
 
@@ -1735,7 +2119,745 @@ function saySomething(string memory something) public pure returns(string memory
 
 
 
+## ABI 编码
 
+### 代码
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+interface IERC20 {
+    function transfer(address, uint) external;
+}
+
+contract Token {
+    function transfer(address, uint) external {}
+}
+
+contract AbiEncode {
+    function test(address _contract, bytes calldata data) external {
+        (bool ok, ) = _contract.call(data);
+        require(ok, "call failed");
+    }
+
+    function encodeWithSignature(
+        address to,
+        uint amount
+    ) external pure returns (bytes memory) {
+        // Typo is not checked - "transfer(address, uint)"
+        return abi.encodeWithSignature("transfer(address,uint256)", to, amount);
+    }
+
+    function encodeWithSelector(
+        address to,
+        uint amount
+    ) external pure returns (bytes memory) {
+        // Type is not checked - (IERC20.transfer.selector, true, amount)
+        return abi.encodeWithSelector(IERC20.transfer.selector, to, amount);
+    }
+
+    function encodeCall(address to, uint amount) external pure returns (bytes memory) {
+        // Typo and type errors will not compile
+        return abi.encodeCall(IERC20.transfer, (to, amount));
+    }
+}
+```
+
+
+
+### 描述
+
+在Solidity中，`abi.encode`函数可用于将数据编码为ABI（应用二进制接口）格式。 ABI是一种标准化的接口规范，用于在不同的智能合约之间传递数据。
+
+在此示例中，我们定义了一个名为`AbiEncode`的合约，其中包含一个名为`encodeData`的函数。该函数接受两个参数-一个整数和一个布尔值，并使用`abi.encode`将它们编码为ABI格式。然后，该函数返回一个`bytes`类型的结果，其中包含已编码的数据。
+
+请注意，您可以使用`abi.encodePacked`和`abi.encodeWithSignature`等其他编码函数，具体取决于您需要对数据执行的操作。
+
+
+
+
+
+## ABI Decode
+
+本页面介绍了如何使用 JavaScript 和 web3.js 库解码以太坊智能合约的 ABI（Application Binary Interface）编码。
+
+### 什么是 ABI？
+
+ABI 定义了智能合约与外部世界进行通信的标准接口。它详细描述了如何调用合约中的每个函数以及函数参数的类型和顺序。通过使用 ABI，我们可以在不需要访问源代码的情况下与智能合约进行交互。
+
+### 解码 ABI 编码
+
+假设您有一个 ABI 编码的返回值，并且需要将其转换为易于阅读的格式。这里提供了一个 JavaScript 函数，它使用 web3.js 库来解码 ABI 编码：
+
+```solidity
+function decodeReturnValue(returnValue, outputTypes) {
+    const abiDecoder = require('abi-decoder');
+    abiDecoder.addABI(JSON.parse(outputTypes));
+    const decodedData = abiDecoder.decodeMethod(returnValue);
+    return decodedData.params.map((param) => param.value);
+}
+```
+
+
+
+该函数接受两个参数：
+
+- `returnValue`：一个 ABI 编码的返回值。
+- `outputTypes`：包含函数输出参数类型的字符串，示例：`"[ { 'name': 'myString', 'type': 'string' }, { 'name': 'myInt', 'type': 'uint256' } ]"`。
+
+该函数返回一个数组，其中包含已解码的值。
+
+### 示例
+
+假设您有一个智能合约函数，返回以下 ABI 编码的字符串：
+
+```solidity
+0x0000000000000000000000000000000000000000000000000000000000000037
+0000000000000000000000000000000000000000000000000000000000000005
+48656c6c6f
+```
+
+
+
+此编码的输出类型为：
+
+```solidity
+[
+    {
+        "name": "myUint",
+        "type": "uint256"
+    },
+    {
+        "name": "myString",
+        "type": "string"
+    }
+]
+```
+
+
+
+使用上面提供的 JavaScript 函数，您可以将该编码解码如下：
+
+```solidity
+const returnValue = "0x0000000000000000000000000000000000000000000000000000000000000037000000000000000000000000000000000000000000000000000000000000000548656c6c6f";
+const outputTypes = '[
+    { "name": "myUint", "type": "uint256" },
+    { "name": "myString", "type": "string" }
+]';
+const decoded = decodeReturnValue(returnValue, outputTypes);
+console.log(decoded); // [55, "Hello"]
+```
+
+
+
+以上示例代码将打印出 `[55, "Hello"]`。
+
+### 结论
+
+在与以太坊智能合约进行交互时，了解 ABI 是非常重要的。使用 web3.js 库和上述方法，您可以轻松地解码 ABI 编码并与智能合约交互。
+
+
+
+## 重载
+
+`solidity`中允许函数进行重载（`overloading`），即名字相同但输入参数类型不同的函数可以同时存在，他们被视为不同的函数。注意，`solidity`不允许修饰器（`modifier`）重载。
+
+### 函数重载
+
+举个例子，我们可以定义两个都叫`saySomething()`的函数，一个没有任何参数，输出`"Nothing"`；另一个接收一个`string`参数，输出这个`string`。
+
+```solidity
+function saySomething() public pure returns(string memory){
+    return("Nothing");
+}
+
+function saySomething(string memory something) public pure returns(string memory){
+    return(something);
+}
+```
+
+
+
+最终重载函数在经过编译器编译后，由于不同的参数类型，都变成了不同的函数选择器（selector）。关于函数选择器的具体内容可参考[Solidity极简入门: 29. 函数选择器Selector](https://github.com/AmazingAng/WTFSolidity/tree/main/29_Selector)。
+
+以 `Overloading.sol` 合约为例，在 Remix 上编译部署后，分别调用重载函数 `saySomething()` 和 `saySomething(string memory something)`，可以看到他们返回了不同的结果，被区分为不同的函数。 ![img](https://www.wtf.academy/assets/images/16-1-02e5e7643e93251800ec337e341a58a4.jpg)
+
+### 实参匹配（Argument Matching）
+
+在调用重载函数时，会把输入的实际参数和函数参数的变量类型做匹配。 如果出现多个匹配的重载函数，则会报错。下面这个例子有两个叫`f()`的函数，一个参数为`uint8`，另一个为`uint256`：
+
+```solidity
+    function f(uint8 _in) public pure returns (uint8 out) {
+        out = _in;
+    }
+
+    function f(uint256 _in) public pure returns (uint256 out) {
+        out = _in;
+    }
+```
+
+因为参数类型不同，所以函数选择器不同，但是当我们调用`f(50)`时，因为`50`既可以被转换为`uint8`，也可以被转换为`uint256`，因此会报错。
+
+### 总结
+
+这一讲，我们介绍了`solidity`中函数重载的基本用法：名字相同但输入参数类型不同的函数可以同时存在，他们被视为不同的函数。
+
+
+
+## 库函数
+
+库函数是一种特殊的合约，为了提升`solidity`代码的复用性和减少`gas`而存在。库合约一般都是一些好用的函数合集（`库函数`），由大神或者项目方创作，咱们站在巨人的肩膀上，会用就行了。
+
+![库合约：站在巨人的肩膀上](https://images.mirror-media.xyz/publication-images/HJC0UjkALdrL8a2BmAE2J.jpeg?height=300&width=388)
+
+他和普通合约主要有以下几点不同：
+
+1. 不能存在状态变量
+2. 不能够继承或被继承
+3. 不能接收以太币
+4. 不可以被销毁
+
+## String库合约
+
+`String库合约`是将`uint256`类型转换为相应的`string`类型的代码库，样例代码如下：
+
+```solidity
+library Strings {
+    bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
+
+    /**
+     * @dev Converts a `uint256` to its ASCII `string` decimal representation.
+     */
+    function toString(uint256 value) public pure returns (string memory) {
+        // Inspired by OraclizeAPI's implementation - MIT licence
+        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol
+
+        if (value == 0) {
+            return "0";
+        }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
+    }
+
+    /**
+     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation.
+     */
+    function toHexString(uint256 value) public pure returns (string memory) {
+        if (value == 0) {
+            return "0x00";
+        }
+        uint256 temp = value;
+        uint256 length = 0;
+        while (temp != 0) {
+            length++;
+            temp >>= 8;
+        }
+        return toHexString(value, length);
+    }
+
+    /**
+     * @dev Converts a `uint256` to its ASCII `string` hexadecimal representation with fixed length.
+     */
+    function toHexString(uint256 value, uint256 length) public pure returns (string memory) {
+        bytes memory buffer = new bytes(2 * length + 2);
+        buffer[0] = "0";
+        buffer[1] = "x";
+        for (uint256 i = 2 * length + 1; i > 1; --i) {
+            buffer[i] = _HEX_SYMBOLS[value & 0xf];
+            value >>= 4;
+        }
+        require(value == 0, "Strings: hex length insufficient");
+        return string(buffer);
+    }
+}
+```
+
+
+
+他主要包含两个函数，`toString()`将`uint256`转为`string`，`toHexString()`将`uint256`转换为`16进制`，在转换为`string`。
+
+### 如何使用库合约
+
+我们用String库函数的toHexString()来演示两种使用库合约中函数的办法。
+
+**1. 利用using for指令**
+
+指令`using A for B;`可用于附加库函数（从库 A）到任何类型（B）。添加完指令后，库`A`中的函数会自动添加为`B`类型变量的成员，可以直接调用。注意：在调用的时候，这个变量会被当作第一个参数传递给函数：
+
+```solidity
+    // 利用using for指令
+    using Strings for uint256;
+    function getString1(uint256 _number) public pure returns(string memory){
+        // 库函数会自动添加为uint256型变量的成员
+        return _number.toHexString();
+    }
+```
+
+
+
+**2. 通过库合约名称调用库函数**
+
+```solidity
+    // 直接通过库合约名调用
+    function getString2(uint256 _number) public pure returns(string memory){
+        return Strings.toHexString(_number);
+    }
+```
+
+
+
+我们部署合约并输入`170`测试一下，两种方法均能返回正确的`16进制string` “0xaa”。证明我们调用库函数成功！
+
+![成功调用库函数](https://images.mirror-media.xyz/publication-images/bzB_JDC9f5VWHRjsjQyQa.png?height=750&width=580)
+
+### 总结
+
+这一讲，我们用`ERC721`的引用的库函数`String`为例介绍`solidity`中的库函数（`Library`）。99%的开发者都不需要自己去写库合约，会用大神写的就可以了。我们只需要知道什么情况该用什么库合约。常用的有：
+
+1. [String](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/4a9cc8b4918ef3736229a5cc5a310bdc17bf759f/contracts/utils/Strings.sol)：将`uint256`转换为`String`
+2. [Address](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/4a9cc8b4918ef3736229a5cc5a310bdc17bf759f/contracts/utils/Address.sol)：判断某个地址是否为合约地址
+3. [Create2](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/4a9cc8b4918ef3736229a5cc5a310bdc17bf759f/contracts/utils/Create2.sol)：更安全的使用`Create2 EVM opcode`
+4. [Arrays](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/4a9cc8b4918ef3736229a5cc5a310bdc17bf759f/contracts/utils/Arrays.sol)：跟数组相关的库函数
+
+
+
+## `import`用法
+
+- 通过源文件相对位置导入，例子：
+
+```text
+文件结构
+├── Import.sol
+└── Yeye.sol
+
+// 通过文件相对位置import
+import './Yeye.sol';
+```
+
+
+
+- 通过源文件网址导入网上的合约，例子：
+
+```text
+// 通过网址引用
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol';
+```
+
+
+
+- 通过`npm`的目录导入，例子：
+
+```solidity
+import '@openzeppelin/contracts/access/Ownable.sol';
+```
+
+
+
+- 通过`全局符号`导入特定的合约，例子：
+
+```solidity
+import {Yeye} from './Yeye.sol';
+```
+
+
+
+- 引用(`import`)在代码中的位置为：在声明版本号之后，在其余代码之前。
+
+### 测试导入结果
+
+我们可以用下面这段代码测试是否成功导入了外部源代码：
+
+```solidity
+contract Import {
+    // 成功导入Address库
+    using Address for address;
+    // 声明yeye变量
+    Yeye yeye = new Yeye();
+
+    // 测试是否能调用yeye的函数
+    function test() external{
+        yeye.hip();
+    }
+}
+```
+
+
+
+![result](https://www.wtf.academy/assets/images/18-1-be3039b3dda4b85f9a3197fbe6102abb.png)
+
+### 总结
+
+这一讲，我们介绍了利用`import`关键字导入外部源代码的方法。通过`import`关键字，可以引用我们写的其他文件中的合约或者函数，也可以直接导入别人写好的代码，非常方便。
+
+
+
+
+
+## 接收ETH函数 receive
+
+`receive()`只用于处理接收`ETH`。一个合约最多有一个`receive()`函数，声明方式与一般函数不一样，不需要`function`关键字：`receive() external payable { ... }`。`receive()`函数不能有任何的参数，不能返回任何值，必须包含`external`和`payable`。
+
+当合约接收ETH的时候，`receive()`会被触发。`receive()`最好不要执行太多的逻辑因为如果别人用`send`和`transfer`方法发送`ETH`的话，`gas`会限制在`2300`，`receive()`太复杂可能会触发`Out of Gas`报错；如果用`call`就可以自定义`gas`执行更复杂的逻辑（这三种发送ETH的方法我们之后会讲到）。
+
+我们可以在`receive()`里发送一个`event`，例如：
+
+```solidity
+    // 定义事件
+    event Received(address Sender, uint Value);
+    // 接收ETH时释放Received事件
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
+    }
+```
+
+
+
+有些恶意合约，会在`receive()` 函数（老版本的话，就是 `fallback()` 函数）嵌入恶意消耗`gas`的内容或者使得执行故意失败的代码，导致一些包含退款和转账逻辑的合约不能正常工作，因此写包含退款等逻辑的合约时候，一定要注意这种情况。
+
+## 回退函数 fallback
+
+`fallback()`函数会在调用合约不存在的函数时被触发。可用于接收ETH，也可以用于代理合约`proxy contract`。`fallback()`声明时不需要`function`关键字，必须由`external`修饰，一般也会用`payable`修饰，用于接收ETH:`fallback() external payable { ... }`。
+
+我们定义一个`fallback()`函数，被触发时候会释放`fallbackCalled`事件，并输出`msg.sender`，`msg.value`和`msg.data`:
+
+```solidity
+    // fallback
+    fallback() external payable{
+        emit fallbackCalled(msg.sender, msg.value, msg.data);
+    }
+```
+
+
+
+### receive和fallback的区别
+
+`receive`和`fallback`都能够用于接收`ETH`，他们触发的规则如下：
+
+```text
+触发fallback() 还是 receive()?
+           接收ETH
+              |
+         msg.data是空？
+            /  \
+          是    否
+          /      \
+receive()存在?   fallback()
+        / \
+       是  否
+      /     \
+receive()   fallback()
+```
+
+
+
+简单来说，合约接收`ETH`时，`msg.data`为空且存在`receive()`时，会触发`receive()`；`msg.data`不为空或不存在`receive()`时，会触发`fallback()`，此时`fallback()`必须为`payable`。
+
+`receive()`和`payable fallback()`均不存在的时候，向合约**直接**发送`ETH`将会报错（你仍可以通过带有`payable`的函数向合约发送`ETH`）。
+
+### Remix 演示
+
+1. 首先在 Remix 上部署合约 "Fallback.sol"。
+2. "VALUE" 栏中填入要发送给合约的金额（单位是 Wei），然后点击 "Transact"。![img](https://www.wtf.academy/assets/images/19-1-4ba34e6d9cbb74a98a3c8affd59bc583.jpg)
+3. 可以看到交易成功，并且触发了 "receivedCalled" 事件。![img](https://www.wtf.academy/assets/images/19-2-b933741438ce18210739446f85b8e3c4.jpg)
+4. "VALUE" 栏中填入要发送给合约的金额（单位是 Wei），"CALLDATA" 栏中填入随意编写的`msg.data`，然后点击 "Transact"。 ![img](https://www.wtf.academy/assets/images/19-3-83c411c3270d886d6ea0535c4cc9660d.jpg)
+5. 可以看到交易成功，并且触发了 "fallbackCalled" 事件。![img](https://www.wtf.academy/assets/images/19-4-a6bbcb103838f43fe8987b95606b8e27.jpg)
+
+### 总结
+
+这一讲，我介绍了`Solidity`中的两种特殊函数，`receive()`和`fallback()`，他们主要在两种情况下被使用，他们主要用于处理接收`ETH`和代理合约`proxy contract`。
+
+## 发送ETH
+
+### 接收ETH合约
+
+我们先部署一个接收`ETH`合约`ReceiveETH`。`ReceiveETH`合约里有一个事件`Log`，记录收到的`ETH`数量和`gas`剩余。还有两个函数，一个是`receive()`函数，收到`ETH`被触发，并发送`Log`事件；另一个是查询合约`ETH`余额的`getBalance()`函数。
+
+```solidity
+contract ReceiveETH {
+    // 收到eth事件，记录amount和gas
+    event Log(uint amount, uint gas);
+    
+    // receive方法，接收eth时被触发
+    receive() external payable{
+        emit Log(msg.value, gasleft());
+    }
+    
+    // 返回合约ETH余额
+    function getBalance() view public returns(uint) {
+        return address(this).balance;
+    }
+}
+```
+
+
+
+部署`ReceiveETH`合约后，运行`getBalance()`函数，可以看到当前合约的`ETH`余额为`0`。
+
+![20-1](https://www.wtf.academy/assets/images/20-1-b18baa5867c909e527eca6852945ad46.png)
+
+### 发送ETH合约
+
+我们将实现三种方法向`ReceiveETH`合约发送`ETH`。首先，先在发送ETH合约`SendETH`中实现`payable`的`构造函数`和`receive()`，让我们能够在部署时和部署后向合约转账。
+
+```solidity
+contract SendETH {
+    // 构造函数，payable使得部署的时候可以转eth进去
+    constructor() payable{}
+    // receive方法，接收eth时被触发
+    receive() external payable{}
+}
+```
+
+
+
+### transfer
+
+- 用法是`接收方地址.transfer(发送ETH数额)`。
+- `transfer()`的`gas`限制是`2300`，足够用于转账，但对方合约的`fallback()`或`receive()`函数不能实现太复杂的逻辑。
+- `transfer()`如果转账失败，会自动`revert`（回滚交易）。
+
+代码样例，注意里面的`_to`填`ReceiveETH`合约的地址，`amount`是`ETH`转账金额：
+
+```solidity
+// 用transfer()发送ETH
+function transferETH(address payable _to, uint256 amount) external payable{
+    _to.transfer(amount);
+}
+```
+
+
+
+部署`SendETH`合约后，对`ReceiveETH`合约发送ETH，此时`amount`为10，`value`为0，`amount`>`value`，转账失败，发生`revert`。
+
+![20-2](https://www.wtf.academy/assets/images/20-2-572c8ac0dfa42d4ea7fc62de0ff1c5af.png)
+
+此时`amount`为10，`value`为10，`amount`<=`value`，转账成功。
+
+![20-3](https://www.wtf.academy/assets/images/20-3-c48a1c9f41ff2a53095bbf4d0b7767b7.png)
+
+在`ReceiveETH`合约中，运行`getBalance()`函数，可以看到当前合约的`ETH`余额为`10`。
+
+![20-4](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhwAAACcCAYAAAA00XKNAAAgAElEQVR4nO3dfVCUV4Lv8W9osLXV5iW2gGkVAQFRUPEF8YWAxEGjoxONrsZkJrmbnZs7qYy7t+7sVN2aqbq7e+tWzdRWbWW3MsnNZK7JJDGJmBiNRlklGBQVxTfeFIwEY0cwHWlptWML3bl/dACRBhukfcvvU2WpT5/n9DlNdz+/5zznOTwUnzDz+4dCQggLCyMkJAQRERGRgeT1egkBFDZEREQkaEJCQnyBQ2FDREREgklJQ0RERIJOgUNERESCToFDREREgk6BQ0RERIJOgUNERESCToFDREREgk6BQ0RERIJOgUNERESCToFDREREgk6BQ0RERIJOgUNERESCToFDREREgi70bjdARETkx2z8qCjGJk4BU1S3x64DZy9c5WxVFbSeu/ONG0AKHCIiIndJbnwoYxespbfDcfxYOJWcwsEPP4HWL+5c4waYAoeIiMhd8nBsLBDKwboWsJ/q2D7BAuFJmZxthljPF6RYEmHFT+/r0KE5HCIiInfZqSYXp6r2d/xxNe0HwOaCXR9/wnX7CVLCIeNnPwVG3t3G9tNdHeHIjoa01c8Dpi7bm1wedhR9gau+sNdyABtPuLDveaPj/5kJUUydk4chMhYAVyuU1zdTWbQHWm0smwTWvF/7bc8rRY1QVcCLT8xgo2MybXve4Kmf57Hl60RsRf/X7z6ZkZDw82fZ8NdzLHukKKC6GZPV7XEbYD5Rg3lyqt/9b+zvhJNvELn6eba8fAI43K3Mi0/MoJgsajb/e691ATw124J72ho+fP0wuA8Avb/e7SqdULL+ox9a3mmsCeYvzscUk4gHAzVNbkq27wNXNTEhsOKZfHY1J1L3yXrA1bFfTAis+EU+2xrjOLvzTcwhbnJnTcQ6ZQaEmfF4odzmpHzbXmg90+U5rWGwcEUedUMm+m1ToGUC0Vv/2uWmRJE673EwReHyQmlNM3XFn4K3OeAy/n4GHi+cuejis13VeOwHOrZbgFXP5YM5uUtb7Vc8FJefw36iEHD32q/4EDAvzuP4J7VkR9uwrn6eDX/9EhxFfssvGm9g0OMvsOXlQ8DhgD9Xu1pnUrftNcDTrVwk8NTTOWy0JXb5TFvCIDcvC0tiOhiMeLxwzOakrOgwODtf957acNbhYdv2Q3DxMM/kxPFtylJ2vL4HvBXd+jRi4Qu8XfAFS6Kr+SwkA9exrb2+biJ9MQTInjmJhyfMBAYDMCjM0Ps+odA4dCSHP6tizhNRWKJGA+OAb4Ld3AEXcOBIedjIlYT52A7tB1r8lskYF8WZIZm01OwC2gKq1wZsefkA7QdOUxgsmpLAisULeXtjG1wo8lvOn6fmxmGcupSPSxppOvUOBnczYy1m5udl4VmyjJrNbwDuHg+WN3MATZUHSMuaiK04vdsXFEBqRgLHzpvBcQAe6flAfKObQ1IXe3Z3/LOn4DAhutdmB8wKRE6cCUDktGQc+30HsZILUPJyZ/uWTQLyfn3L198CLFmZR4kzkcrXNmLGzooFGXhW5lH6VgtNXhvlWwvJfjoW26TFuKoKOvZdlJdMpTeZs/+5FXCz6icTqYuYy873DuB2VBMfEcqiZY/hWrKQms2dYWVBShRJC5bjchnA679dgZQJxK36BzbfQWvBGt7e2YDzdAFjTbBg6VzaFq6h/lPfgTaQMtD9PR8zzER2ZgrPrZ7BloMJ2A+/06V97Qd2AJPRQGZCHKvmZlE24XnK399Cb+/JWbMs1AyeCPjeA5FA0pwU6rbt4eZwEAnEZ+Vgo+sXZSDv/ekJBuoic/wGmVnJBnh4Itg6w1GqCXKfXkmlcyRb3t2L21FNjCmUBXkZJPwijw0FMdDUWdfNbYg0GliSPZElK3PYtt7DrpKjrBhbS/zCedR/Wt3RtyQjxOctZ0P5VWgqxBNuIDN7NMXHEoCuAVekv+anD8UydUFAZT0/fOwyYiDjqbVBbFXPwkNg4aJsDl9LpL7oQ2489g8BFmRPwhY5m6Of7ALvl7esL6BLKnOsQ5m1/Bc8NjWF+AVrgfBuZRZPjiX9J2t5Yl4Kllk/p7+DJ65W2HX4DGZHNZHjxwW8X2YkmKbm8EFxI00nCsDdjAeotzvZ8H4hNUXvcauzPH8qT7iIx4Zx8sRujyWFgDF5MscrbNx4tn6/SEs2UG+Io37XHqZMHAok3FZ908dD/dAUKrfshVY7zlYo3XmUtKE2SPYFmzIHOPZ/xIK5sWCaAUDuGANtKTmUFNaCtwGADSXVlLz/Hm5HBeCh/pIb25HtxFsNQErnkw438fan52gu6yHABVpmgPoXnzKZ4lNtOE9vB9ycdbmp/LSIWeOvQmROwGX8abriYmPRUeyfv8eCWeG9lnW5PRTXnKHknXfIjGomMuuxHsu2B8/jJxu58X2cOc4A0d33m5VswDMsBX+jFLcS6YXUnBRuHj2LBMZm5kBr1/Kzc9Ipd8VS8v7GjvdCk8vN258cwHRmD5k/mYgvCvrncHso3VXB2BAbjEugyQvHdxYyP8GNMWU5AEYg+ycZlDpicRz4CIDaWg/JYY2QPLnPfRTpyZDhvrtQNh36hk0b3mXThnf5rnaX37KnG+D6pS+5fs3d8QdvYCfyA2Vx7iSGWKeRnRje5dg/BFicM4moCQtIjxmKNXdJQPUFFDjGJo+DkKEAZMcbu4WOxZNjscx6kvaQERcXDsQG2qdu3ACtbYT2IbMkTbZSd8WMq+pAt8dcAM7mbtsDUecFV+0JpqRZuPmLLW2yidpWK9Se6Ffdd5MRiE+fycGKq1SeqiCZhtv+co2xxmG7YABv5zB3nRcMF84RM6rzdq8dR5zE2g+Qtmgm8SFmUh9fxs5jHmgq7Cjj8v3Quj5BiIGrboCrHZt2HbbhPFNIbwe/QMoMWP9CDbS1dX0etxsiacMYHxt4mV7sr3ASeeULLJMTb1m20gXOmr2kpZjxRYvu4qOhyRQLpxs7ttkAKmtJnZ3IjeGgPRjU1nxDvwL8KRfTYr+B6Hldts9KNlBjSIHGzslwqSFgTEim7HgjYO9e14EKkiKdEJ3R63NeB2hzd5wDlV4AV/kWFub4Qu/CSWYccVkc/+Qo7e+5esDQeI74hP5/j4n05Mo1D1cuf8OVy9/gafV/xeDsddjwwcdseOtPbHjrT+x8609w9c5OFv3m/Dnw+j7n7cf+IYSzOGcSw5J9IzXXgYvnu38+/QkocOwqroJLVR3/vzF03Bw2Gq/D4e37gf7dL2wAssdbcMakYD8ZeB3myFi+vQT9vTbfm5qjZ7p9sUUCMWlZHK92cj8OuU6JhKaYZBxHarEBzupDTEm30tu8jVsxRViwN7u4+cDuarYTFdFZrwso2XGYbMs3zH9+DaUOK/Z9G3utO95swDp1IVU1LqC23228HYH0r6mhmjnJJgyWuQCYwyD18SxwDcU8fHDAZXpjB7jUjCUysJ+V81sbkWbo6STAYjVhv2ICd9fPzpEDzd3CwaxkA8dIwXNyT0DPfbOTrUDNgS5Bpj3ElOxvBDpPDEZYwBkSDo3+TxbsDjC3OiG6+9oF7YwhkDkzDltonO+U8QcfH7BjdRxlyeKZxM5dzI7Pm8G1r8u+TnsjsRYDPQU1kQfd7pMt2Pa92yV0LH1qbZewsXVvI9+d3BRQfQGNIdi9sL1gF4tXAhGTOp548sq1hEcZuDFsFG7aD5fLAu6QFXhxXRbQOZHS7vKwpbABLuzutZwTePv9WrjgOzO2OwK7rJFmhrR1y7ts622OyHEHTD9fi3VSOrYLvm1TrNAUnojjSNd5HYHUvWqyCSZ3ndxW/BUBTfJs5+/16OKr3vdPzUig9Muh4D4EQM0RO1On2TluzQXb9oDbcTPP9923tX3ffRiwxgVTqvZhmraS47sb6DaaAaQCuetW0n6gLLV5sO//qN9tGwi36t+OYy6WhBfxwuq5EJKBywsf72/kKY4CkwMucytOR6PvSB0Ahx0ie7nkZzaPpO4S3HySUOOGKcf2kDp7FTWb92LBxdjZj7FjfyPZfkYcAv1clZbYmPPLRmqi58GFQrInmThGCtRuhNS4rv0EuNj9vQFwGeC7q1iiojpa47cNDg/btp4Ad2cbXEDJJ/vIfnY0xY1RuCre7la/85KNERHge/8N/ImMyP1g98kW8nmX2GzfVIkhw41AZ9i4UrOJQOdsBnzRwl/oCI8ydjzen7AB0ATsWn8UqMUELMlP5uyQDJynTnDjmeSN5dq1AVzpHF63RJr8fA12V3MFjhQUceMsX9/L5f+LzQ3UVxwiLS+jY/Jo8pR0PvsytOOA3Ze6d9S4+LZsS5f9rvbx0py/16PdM/nJQM/DzEkhQPJk6rY20P4aH3fDrC+rSZoyjzqbgf5efjA81H1b6EPd32a+OTf5uC80kz0vjpKGuI75G+1qAdv6QsBIpBEW5Exk6DMrKX2r/3eZ3K5b9c8FbNxTDXuqMRhNeNwujACJc/tU5lbMkYEP9UdaoLeRK1OEBY8X/P3MD5bZefSXjdRYc5kdUcyx1kRfMPAzcTnQz1W9F2ad2MuU7DV8XbAXy4x5bNnXftmka+AwAzxshovdn284wJCh2Js7vwNubMMIIyx6fCYnHVY8tqPd9m9yAd81U3O6rVsbAa67YdBtXoYTeRCUnGzhiXH7GTQ6u2PbiQtwpeY/CTRsQB9ndvoLHdD/sAG+pjqdbsCOEyj50M6CF0ZSOS0H15F3/Jbzx+loZMQ48J37934w8njB6WzpsS5/Kms9LMtuwDh5IhNqKnCPm0jd5s4Ddl/qvtwKTmfgz+1Pr69HW1z3bTdIm2zCFGblxRUAXUda0rxQZ5zZcYtsX7gu2bFEmWiia2AxRVlobu56C+z0pfnsODMU187XWPHMY9Q9+hhNxeu77OcBnE7fgcAJlH24h8yXYikdMxm+uvOBI9D+tfO4fdseAXh4JPYT3a/VBlLmZlaAESOxnw5sRC8qOoEzToDGWxXtpt4LUw/vJjfrWSzDuCEYdNeXz1VJmZ0Fk84wNu8xKltHw+nul9S+tUOatwVio/wGDkskOMPMcKGzXze2wQmUb93OnJ8/S92YXPiq/yN3Ij9W7RNEbwwbADOi4bsFq6nf9S493bl6sz4v/NUeOtrndNxO2PCnzguO43vJzIiiL3dN1J2wkTTMiWlS90sMRgCT+bbaZQMc1YeYkmYhddpEalosYDt0y/3uNe1zTzYeaObt9e91+fPh+veIaaklclryLevxp8nWgDXaAyGdd/QkhYAnejRNts7r8Auy46gZlEz9zt00eT1UFu5mySQ67hoAIKT3e9PvhkD6FxMNhHQNfGmTTNQTC3W1AZfpzbR0M47BcdhP3HoCWZoJTMkzqTzlpKcg7rpkxxAC4P81LzvmJDXiDOWuBDi922+ZvrJ5wXl0L1GT4igracBfSKnxgvtMLXOmxeJvHkVaVjp1F81wofvoRUfbHWA8c5QpmQn0dX7SICP09JqI/Bi0h40b52zYz35D+6iGv5tIetOvlUbtXthcsIujx0oo3LRrwMJGu/KDdlLDbBinzgx4nzIHuI7t4W9yY4mZvBKMURiAeIuZZ1bnk7boWX6IHv1Wc8TO9HA7kdPyOF5ppy8jJPeKKWMM2MITsZfX4nTau/xpctppqtzLlIlm+nOLbPlpiL96irRl8yDMgjkMspdlUXnVCqd94WzReAOkLab4k1rw+g6uJU2eLncNGIHnV8wkbeGzGIclAAZijAamL87ijMsCtruzrG8g/VsydSLZqxZjiEjvmABtnbucg4dbOtZxCaSMPzEmI6vyMrA8uoZt+5rB0fPETVMY5KYmkP3005Tao3Ac6Pns3n3tKpERAKP9Pm7zwvq/7uT4x+/Q02XH/vj4iJMP1r8JX/UcYvbvqWCKsZHs1cswRqYDBmJMRp75aRauhBzKdldzq8/hsdIKpo5ygjW3T+0bOtyCo58jQyIPgsWzRnebILp95wfYSv7aZSJp1Ky/Cai+fq802uKFikNH+rt7r+q8MP34XmZPX0PxiWSgtsdJkjcuorVhXwOZje/wszl5GHKeBnzrepTVN1NZ9BHtt/H5m1gGXRdO8qd9nsPZMTm4T1T7LRNI3f4mjQaysNntMgKpmTPZ9WUoeP2fFVaecDE/y0Zx8mSo7dvdN3ZgW0ER8xeHkv3Cqo6VOEsLigAbqSbf4kofVrqhqetB5uMDdn4+6gDTf5pFecEZPis8xKw8E9nPLgSDAY8X36qeHxR1BJWbV9i04nvtb5xMHEiZF5+YQWVEFiXrPyI72kba6ud5pailY3XM9sfs2HrtH8CWomoWLDTzwjPzICQHuws27G/AUdF5wA+kTHtbb3zPt680+uH7FV1WGm33Yl4s3LDSpv2Kh41l57CfKKC3W1gbv7ZjmekGoxXcDX7LuNwebryDxJ++fq48gMvZe4CpcYF9fQG5eVk8vzYLDDmdK42+VdRlpdGelDlg6pmjTJmTw/EPzAQamiJHjObgBQ+aMCp3wrDBBhje85LlwwFC7uzi4B6P73vj5gmiu0+28BjvYp27FkICP5F/KD5h5veDhwwJTmtF5J5nBZb9cjGv7Df1Grh/TPSaSDA8OWc0wyY9yZsljXDyfQAWpw/FkvXLgOs47YLStz8B7sxI76zUWKq+m8SVL4u5eYJoxthwGobPprnqMwJZl0e/LVbkR84GOOtOkBS3jLqq/t+h9CAZPwbqQ6xQ0/fJ0yJ98VnFVbIH7+ry+1UABg0yQEgo16+10fHrDq62UfrZCe5U2AA4WNNIT5cVj55tAXYEXJcCh4hQdsCG5YlG6ojjflzIbqBFRVv57Ehzr3NqRAbCd0DhoSo41Lm4ZhSw9KlFNA5PofCtQ8DAzpO8WxQ4RIQ6N9S9f3cXVbuXfHjYBuhSigRHSowJDLN7fNwEENbzCrr3KwUOERGRO+BiYyPDJrUxKykckjJvWd7eDHDr38J6v9CkURERkTtk/KgoxiZOAVPPIxjXgbMXrnK2qgpa+/d7ye5FChwiIiISdP1a+EtERESkLxQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6EL7u6MhPIpBo+IIMQ0byPbIPcTrusL18w14WprvdlNEROQ+168RDkN4FIPjUxU2HnAhpmEMjk/FEB51t5siIiL3uX4FjkGj4iBEV2N+FEJCfD9vERGR29Cv1KCRjR8X/bxFROR2aZhCREREgk6BQ0RERIJOgUNERESCToFDREREgk6BQ0RERIJOgUNERESCToFDREREgk6BQ0RERIJOgUNERESCToFDREREgq7fvy32fvCX59L5NuFRfvu7CuBzADb+LcTN++duZS+64P8db6Tg9fcBxy3r/lM+TF/zP5m59zL85T8GuOUiIiIPlgc6cMSNHM5wqwWI7LL9MvDHHefgXBkAc0cNIXd2Outmj6b08mrOv/fqnW+siIjIA+yBDhy9KbzUCvsrfP8Gfre3jKV/eImVE2J5+e42TURE5IFzzwaOdVNg5dPPMmhEPNc9UFDnYG1EI+XhqfzqV4VAKSuj4YWXnmR4bCoYQmm4DH+/uYL/8tkmlr75EmBhOHDozQwuk0Hee/XAm36f7/IFwNPG9dY2APKj4elVeYybMI1BP/y21NJvr/EPr5TCl5/7reN3j8WSm5fP8JFjwBDK5Vb4495GCv/qu0xT9Ns5XJyQz9cfVTDn8dEwOJLz1+BXW+o4v+MdgG59Ou+CV/fWU/jeFlZGO/z29/xnmwb0tRcRERlo9+Sk0aXA2ueexj0invVH7OzcvJ2l0VdgZGpHmenAupd+xvXodF7d18j6dzbxcEsNf1iTTkF0Pr9/vZDLZ0o5D/z+9Rr+9+ub4HiJ3+ebMw6W/jaPy4ZYXj30FQCjLsCIxNHs/OIyv3/nc0q3bWdO+Hes+/mjPbY7PXEItYzi1eI6Xn19E9iO8vfzY2F2fkeZUcC4ham8us9B6bbtjDI4+JdlScCjzAF+85vVYE1n/XEH69/ZDrYKRo0ZyXQcPfaX6PyemiQiInJPuCdHOBbmA+FjeLniClv/wzch8/LhMtb+038DYgFYOw+wJvG3Oxo5/8GffTvuruC51/6Oy0uSKPxLIf84z8J1oHD/NaCio/7hwKE18bCmc/LodeCPBx1QuAWA9cD6dZ2jIYXAvgnDSI59FJgDlHZr96rX6oH/0/H/lJYKcn8zDiZYYH9nuV99buf8B766i8bBqImLYfZo1g4HRsR36feru33zTP6tl/6OWpLE+b8UBvjqioiI3Hn3ZOAYYYXLDGZrdX3HtpcvwFpHI4T7AscjSTCIYXy8aBgs6nrXSe6Ia7zbS/03TxodBazKied3s9Ih7O/Y+h9/JBn4l5ceJS59DoQN7tzZ1XO9v5kVycJVTzI8PBYMN7609o5/fQucr+q8C+ZicxkPsxiGh3b2+2Q9N7ud/oqIiNxt92TgCNTNwaFdpaPtlvveOGkUoHJ/BX/618EsTEplK5n8bk0ZcdPyKLVdY+fBMmg+x+/zRkNspt/68oGVaxZz0TSa9WXnqK+qYH7Yd+Q+l9el3HWA6mt97KnP7fRXRETkbronA8e3NojjGksnjmTrD1cK1kUDkbHg7VrmyohhlH7QGRxGRcP5C523wQ4CiA6FCwE+uQEglFHWTC4C/7CpHo5vZzowaHnnHBI8vr/yhw+hEJgBEB7Jzi/bePV13yWPVcsBfkYg63p06feEkWzd4f+xW/VXRETkXnRPBo6dhTD98a9Yl57EIy+9xMNfHmLh/HQYHNtxSePdQkjPqeGfZ2Sw87+/RMPBChZOCiVuRjp5mxxQ+Cbnv64heUI+//ZSEte/epLfnv0O2A5AfkQYzE4HIN4ES2cmwYgkSk9eA0ppqIW0ifn8y5Px1JseZdWCSAhPglbf89fuhulrHPxtSixzf/k0W042svRCIwutFs4//Syzr50k+dHZfep3e5/WpWfwyEsvwclD5M8czRZPPO/+4Y+37K+IiMi9yhAZ9cj/Cg0L69NOg0aNDVJzfGoBU1MF6YljmZ5oZVxyEgVfeUlv+5Lzgy1s336Gc5zj66pTzBhrYnryGObMSMI0Ko795zwUbyuHq1/zTcU15kw2kWi1Mm5sLJc8EUy8Xkr02Fzmjw9n/rRU5k9LZWp6Kp6IaDbVtvDnP2wBLlJeC7NGXmN6SjwzZiRRds3CiPNHuBhhZfv2M5Rxjmyzk8SEJBLHRvNPl4di2vUmU5PHkj0pnqEJSZQXf8u48W38+Svg2CF+MXcM31kSKfi4ETgFwMoMMI3N5a9VDs6dOc7lqlNMn/AwmePHMHVKCpeHRFNcaaO46ixfVx3vtb/B1Np4Nqj1i4jIg+2h+ISZ3w8eMqRPOw2dlh2k5vRsOvCnf11NMan89n+8CXSfWCnBc/WI/1uKRUREAnFPXlJZCvzjy09zuHkU+6vrGHGpvuOSR8FeOwobIiIi95d7MnCUA4cPVjBjdiRzlmQAGVxuhVeP2Cn/i1bVFBERud/cN5dU5O7SJRUREbkd9+TS5iIiIvJgUeAQERGRoFPgEBERkaBT4BAREZGgU+AQERGRoFPgEBERkaBT4BAREZGgU+AQERGRoOtX4PC6rgx0O+Qepp+3iIjcrn4FjuvnG8DrHei2yL3I6/X9vEVERG5DvwKHp6WZa/U1OvN9wHldV7hWX4OnpfluN0VERO5z/f7lbZ6WZr7TgUhEREQCoEmjIiIiEnQKHCIiIhJ0ChwiIiISdAocIiIiEnT9njQKsPfS1wPVDrlPzIt45G43QURE7kMa4RAREZGgu60RjnY6633waTRLRERuh0Y4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToFDhEREQk6BQ4REREJOgUOERERCToBmThr/5Ykh7L2OzFYDDh9MC2EhuOii2AZ0DqTwVy161k44lw7HveCGif3FQLp4fNw3boo45tljCYPScDa2o6hJnxeKHc5qR8215oPQNAdjSkrX4eMHWpzwZsefkAcBh+eHTB7IlYM7LAYMLlgc+r7NSXFIK3OaA2mkNg2U8ycCbP7VJ3u7EmmL84H1NMIh4M1DS5Kdm+D1zVAdUvIiISDHclcCxLN2PJXU5xVQvNh4vJnhHOU7lZrA9bg+vIOwPyHDVAzcsFfdrHOtLIhUhr17bmTaQuYgY73zuA21FNfEQoi5Y9hmvJQmo2rwdcADiBt9+vhQuFPdb/1OPpNMXm8Mamw7ibDhEfaeTR/HmcnZSHp+LWbc20Gpn++EpcnnD8BTMLsGRlHiXORCpf24gZOysWZOBZmUfpWy34IpCIiMidd8cvqVgBa+Y8ys8bqCn6iCbnGbYUHYXzR8nMiAIS7nSTerW+qJqS99/E7agAPNRfcmM7sp14qwFICbiezEhwJGSw7b2juJsO+OpyuFj/fiGeqo9uuT+AcZiBjWVOzmx7A3B3e3z6eKgfmkLllr3QasfZCqU7j5I21AbJMwNuq4iIyEC74yMcj5gBk4WTR5tpHx1wA031J4idOwPMo8kecoa01c9T/JWJms3/7reeZZPAMePXlKz/iPYz92dyrJwdt5yS9R9hwcaq5/J55bAZqgo6ypuP7GNsdgYYTNRd8rCrYC+prgpy13LZZu4AAASKSURBVK0EYskFctf9uuNyiKf1MP4O7n2VNNFK5TdmcB3t/qDXN1rx4hMzqIzI6tKnG5WccgFbmRDt/zlirHGUXzCAt/PySZ0XFlw4R8yoyTTV3nY3RERE+uWOBw5TBIARt/tql+1tbheRABFDB+L47lfqEChPnsG2Pxdi8TawYnkOX+fnULO5mpqXC3gmx8qRyOU9hpx2sXHpHGwCONWxLRRYkjoU67JnwWimscXDts9O4LHtA8BsiaXpGxfZ8aGk5q4BkwVbi4dt2w/BRd88jFc2H+bmORl9YYqwYG92cfPlFleznagIE039rllEROT23PHAYTYDGP0+ZgQwmyipgpKXA5vo2ReNBij/8Ch4G7ADjSf3MmJGOjAaaAiojmWTzFwdN4/jG6tpH6EB34TQpmEWSjbvwehuZmFmLH/zRA4b3gkFxx4AMiPAEb2UDVsrMLkbWTB3NEtWzmXbeg+4/Yx89IPn++7b2r5vG5C6RURE+uuOz+FwOqGnIQw3gNPl97GB4LgCeBs7N3g9RA4D33TLW8uOMWDJXcWHxd/AhaKO7XWX4MNdRyn/5D2c9lrsTjvbdlUQ2VKNZXJiR7nQMSZKNjfgtFfQ5LSz7dOjjHVVY85IH5gOAoaHum8Lfeiu3YwkIiIC3IXA4boE4MZo7DrKEWo0+cYLLl31s9fdl2qCtJ8tZ1sluG6a5Nnkhqaao/juVfFxAFx2Yon03SrrvuLE7gTcDd3KGI0DEwhcl+xYokyAoct2U5SF5kvBC3IiIiK3cscDR70TcDYyIT6K9nUrjEBM/GRsTsD5ReCVhcCNV4WGDou67fYNGgQ3r6dhDYPclfns+iqKpj0b8btWSEjXg7wRYJARu8N3oP/6qy+wDPOAcXRHmUiA4Wbc7oG55NFka8Aa7YGQiR3bkkLAEz2aJltg63yIiIgEwx0PHHbAdvgA00d5SM1bTow5gWV5GbhHZVB+uBGwkR0NL657ntQnft1jPU1fQ9IwJ+bJMzCGGFmUGkvbqIzbatu3jY0kjfRgsGRhDANCTMSEwLKn8il2JlL36XvcOIrRbkmKkWXPvYBlfB6EmTGFwbLZyThGTsZ+whegDtZ6iHFUM31pBhjjMIfBkgXpnDVNxHm04rba3a78NMRfPUXasnkQZsEcBtnLsqi8aoXThwbkOURERPrjrlzc31LlZEnIR+TOzYdJi3G0wofFNlxVWwKuo8wB1kN7eCY7H3L+K+Xn3Qw6WAjTlva7XZ/Xelgxbi8vrJ6Hh4m8trOBTONWiEgmNwJy1z3bpfwrRY1QVcCOU27mG7ewIjsHw+O+MmcdHrZtOAQO310nDmDLB3vIXdJG5i8XQ4jBV6bgQMeE0VvdFvviEzNgTFbn/9dlAVkd7bAD2wqKmL84lOwXVnWsNFpaUOS3PhERkTvlofiEmd8PHjKkXzvvvfQ1APMiHhnINsk9SD9rERG5HfrlbSIiIhJ0ChwiIiISdAocIiIiEnQKHCIiIhJ0A3KXSvuEQhERERF/NMIhIiIiQXdbIxy6RVJEREQCoREOERERCbr/D7f4riYPT5kEAAAAAElFTkSuQmCC)
+
+### send
+
+- 用法是`接收方地址.send(发送ETH数额)`。
+- `send()`的`gas`限制是`2300`，足够用于转账，但对方合约的`fallback()`或`receive()`函数不能实现太复杂的逻辑。
+- `send()`如果转账失败，不会`revert`。
+- `send()`的返回值是`bool`，代表着转账成功或失败，需要额外代码处理一下。
+
+代码样例：
+
+```solidity
+// send()发送ETH
+function sendETH(address payable _to, uint256 amount) external payable{
+    // 处理下send的返回值，如果失败，revert交易并发送error
+    bool success = _to.send(amount);
+    if(!success){
+        revert SendFailed();
+    }
+}
+```
+
+
+
+对`ReceiveETH`合约发送ETH，此时`amount`为10，`value`为0，`amount`>`value`，转账失败，因为经过处理，所以发生`revert`。
+
+![20-5](https://www.wtf.academy/assets/images/20-5-cb457285c7185c438995bfcc95b6a01d.png)
+
+此时`amount`为10，`value`为11，`amount`<=`value`，转账成功。
+
+![20-6](https://www.wtf.academy/assets/images/20-6-1ae2f81d902c618059d813e5b16cbe4c.png)
+
+### call
+
+- 用法是`接收方地址.call{value: 发送ETH数额}("")`。
+- `call()`没有`gas`限制，可以支持对方合约`fallback()`或`receive()`函数实现复杂逻辑。
+- `call()`如果转账失败，不会`revert`。
+- `call()`的返回值是`(bool, data)`，其中`bool`代表着转账成功或失败，需要额外代码处理一下。
+
+代码样例：
+
+```solidity
+// call()发送ETH
+function callETH(address payable _to, uint256 amount) external payable{
+    // 处理下call的返回值，如果失败，revert交易并发送error
+    (bool success,) = _to.call{value: amount}("");
+    if(!success){
+        revert CallFailed();
+    }
+}
+```
+
+
+
+对`ReceiveETH`合约发送ETH，此时`amount`为10，`value`为0，`amount`>`value`，转账失败，因为经过处理，所以发生`revert`。
+
+![20-7](https://www.wtf.academy/assets/images/20-7-bbfe1e7134676767c0a6c9612165ea9e.png)
+
+此时`amount`为10，`value`为11，`amount`<=`value`，转账成功。
+
+![20-8](https://www.wtf.academy/assets/images/20-8-5c25a6d4556ce624ff27752f24e85d4a.png)
+
+运行三种方法，可以看到，他们都可以成功地向`ReceiveETH`合约发送`ETH`。
+
+### 总结
+
+这一讲，我们介绍`solidity`三种发送`ETH`的方法：`transfer`，`send`和`call`。
+
+- `call`没有`gas`限制，最为灵活，是最提倡的方法；
+- `transfer`有`2300 gas`限制，但是发送失败会自动`revert`交易，是次优选择；
+- `send`有`2300 gas`限制，而且发送失败不会自动`revert`交易，几乎没有人用它。
+
+
+
+
+
+## 调用已部署合约
+
+开发者写智能合约来调用其他合约，这让以太坊网络上的程序可以复用，从而建立繁荣的生态。很多`web3`项目依赖于调用其他合约，比如收益农场（`yield farming`）。这一讲，我们介绍如何在已知合约代码（或接口）和地址情况下调用目标合约的函数。
+
+### 目标合约
+
+我们先写一个简单的合约`OtherContract`来调用。
+
+```solidity
+contract OtherContract {
+    uint256 private _x = 0; // 状态变量_x
+    // 收到eth的事件，记录amount和gas
+    event Log(uint amount, uint gas);
+    
+    // 返回合约ETH余额
+    function getBalance() view public returns(uint) {
+        return address(this).balance;
+    }
+
+    // 可以调整状态变量_x的函数，并且可以往合约转ETH (payable)
+    function setX(uint256 x) external payable{
+        _x = x;
+        // 如果转入ETH，则释放Log事件
+        if(msg.value > 0){
+            emit Log(msg.value, gasleft());
+        }
+    }
+
+    // 读取_x
+    function getX() external view returns(uint x){
+        x = _x;
+    }
+}
+```
+
+
+
+这个合约包含一个状态变量`_x`，一个事件`Log`在收到`ETH`时触发，三个函数：
+
+- `getBalance()`: 返回合约`ETH`余额。
+- `setX()`: `external payable`函数，可以设置`_x`的值，并向合约发送`ETH`。
+- `getX()`: 读取`_x`的值。
+
+### 调用`OtherContract`合约
+
+我们可以利用合约的地址和合约代码（或接口）来创建合约的引用：`_Name(_Address)`，其中`_Name`是合约名，`_Address`是合约地址。然后用合约的引用来调用它的函数：`_Name(_Address).f()`，其中`f()`是要调用的函数。
+
+下面我们介绍4个调用合约的例子，在remix中编译合约后，分别部署`OtherContract`和`CallContract`：
+
+![deploy contract0 in remix](https://www.wtf.academy/assets/images/21-1-9c522c370dfc53d1a0c273716f949c9e.png)
+
+![deploy contract1 in remix](https://www.wtf.academy/assets/images/21-2-a3c672e6dca937bf09dc3dfe5a421534.png)
+
+![deploy contract2 in remix](https://www.wtf.academy/assets/images/21-3-dd0cfc401d8462761c9b740ec21aa994.png)
+
+#### 1. 传入合约地址
+
+我们可以在函数里传入目标合约地址，生成目标合约的引用，然后调用目标函数。以调用`OtherContract`合约的`setX`函数为例，我们在新合约中写一个`callSetX`函数，传入已部署好的`OtherContract`合约地址`_Address`和`setX`的参数`x`：
+
+```solidity
+    function callSetX(address _Address, uint256 x) external{
+        OtherContract(_Address).setX(x);
+    }
+```
+
+
+
+复制`OtherContract`合约的地址，填入`callSetX`函数的参数中，成功调用后，调用`OtherContract`合约中的`getX`验证`x`变为123
+
+![call contract1 in remix](https://www.wtf.academy/assets/images/21-4-89e705ffc18c8f90063c922e7504b31e.png)
+
+![call contract2 in remix](https://www.wtf.academy/assets/images/21-5-52866e87f467b4ebad52d6d00d4d2744.png)
+
+#### 2. 传入合约变量
+
+我们可以直接在函数里传入合约的引用，只需要把上面参数的`address`类型改为目标合约名，比如`OtherContract`。下面例子实现了调用目标合约的`getX()`函数。
+
+**注意**该函数参数`OtherContract _Address`底层类型仍然是`address`，生成的`ABI`中、调用`callGetX`时传入的参数都是`address`类型
+
+```solidity
+    function callGetX(OtherContract _Address) external view returns(uint x){
+        x = _Address.getX();
+    }
+```
+
+
+
+复制`OtherContract`合约的地址，填入`callGetX`函数的参数中，调用后成功获取`x`的值
+
+![call contract3 in remix](https://www.wtf.academy/assets/images/21-6-615b6ab5f73c18a1c4a7a7d0be5f7228.png)
+
+#### 3. 创建合约变量
+
+我们可以创建合约变量，然后通过它来调用目标函数。下面例子，我们给变量`oc`存储了`OtherContract`合约的引用：
+
+```solidity
+    function callGetX2(address _Address) external view returns(uint x){
+        OtherContract oc = OtherContract(_Address);
+        x = oc.getX();
+    }
+```
+
+
+
+复制`OtherContract`合约的地址，填入`callGetX2`函数的参数中，调用后成功获取`x`的值
+
+![call contract4 in remix](https://www.wtf.academy/assets/images/21-7-ab9a5e3d84b27006392eb368b1e93d2d.png)
+
+#### 4. 调用合约并发送`ETH`
+
+如果目标合约的函数是`payable`的，那么我们可以通过调用它来给合约转账：`_Name(_Address).f{value: _Value}()`，其中`_Name`是合约名，`_Address`是合约地址，`f`是目标函数名，`_Value`是要转的`ETH`数额（以`wei`为单位）。
+
+`OtherContract`合约的`setX`函数是`payable`的，在下面这个例子中我们通过调用`setX`来往目标合约转账。
+
+```solidity
+    function setXTransferETH(address otherContract, uint256 x) payable external{
+        OtherContract(otherContract).setX{value: msg.value}(x);
+    }
+```
+
+
+
+复制`OtherContract`合约的地址，填入`setXTransferETH`函数的参数中，并转入10ETH
+
+![call contract5 in remix](https://www.wtf.academy/assets/images/21-8-3566ee52a32b536dded77112c6599bdb.png)
+
+转账后，我们可以通过`Log`事件和`getBalance()`函数观察目标合约`ETH`余额的变化。
+
+![call contract6 in remix](https://www.wtf.academy/assets/images/21-9-d90c3bad37dd4d77acbd2ea8b695242e.png)
+
+### 总结
+
+这一讲，我们介绍了如何通过目标合约代码（或接口）和地址来创建合约的引用，从而调用目标合约的函数。
 
 
 
