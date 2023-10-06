@@ -370,17 +370,17 @@ https://nginx.org/en/docs/http/server_names.html
 
 在**客户端**代理转发请求称为**正向代理**。例如VPN。
 
-![img](https://cdn.nlark.com/yuque/0/2022/svg/28915315/1659069721078-51b03bd0-f4ae-4441-a8b1-deef20ce8e05.svg)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659069721078-51b03bd0-f4ae-4441-a8b1-deef20ce8e05.svg)
 
 - **反向代理**
 
 在**服务器端**代理转发请求称为**反向代理**。例如nginx
 
-![img](https://cdn.nlark.com/yuque/0/2022/svg/28915315/1659069737327-ed7e214e-aace-45b1-afe3-32a776b94b8f.svg)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659069737327-ed7e214e-aace-45b1-afe3-32a776b94b8f.svg)
 
 #### 2.配置代理服务
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659084328663-32955bb1-82f0-40f3-b94a-f233b4a5793f.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659084328663-32955bb1-82f0-40f3-b94a-f233b4a5793f.png)
 
 RuoYi是一个基于Spring Boot的后台管理系统，ruoyi-admin.jar可以从网盘中获取
 
@@ -496,7 +496,7 @@ Apache Tocmat 严格来说是一款java EE服务器，主要是用来处理 serv
 
 #### 分离静态文件
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659339381949-41af5d82-eb67-4db3-aaa3-524a61e3a52f.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659339381949-41af5d82-eb67-4db3-aaa3-524a61e3a52f.png)
 
 RuoYi是一个基于Spring Boot的后台管理系统，ruoyi-admin.war可以从网盘中获取
 
@@ -535,7 +535,7 @@ messages:
 
 除了js、css、图片文件之外，还有字体文件和一个ie提示页面。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659403384054-77a861b5-99f9-45a6-81e1-f657aac53b40.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659403384054-77a861b5-99f9-45a6-81e1-f657aac53b40.png)
 
 
 
@@ -621,13 +621,13 @@ https://docs.nginx.com/nginx/admin-guide/web-server/serving-static-content/
 
 启用缓冲后，nginx先将后端的请求响应（response）放入缓冲区中，等到整个响应完成后，再发给客户端。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659585056819-df82befd-d847-4a0b-bffc-84cf626c2fed.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659585056819-df82befd-d847-4a0b-bffc-84cf626c2fed.png)
 
 客户端往往是用户网络，情况复杂，可能出现网络不稳定，速度较慢的情况。
 
 而nginx到后端server一般处于同一个机房或者区域，网速稳定且速度极快。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659585159748-308fa557-418b-4bda-9f3f-a16efccaa673.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659585159748-308fa557-418b-4bda-9f3f-a16efccaa673.png)
 
 如果禁用了缓冲，则在客户端从代理服务器接收响应时，响应将同步发送到客户端。对于需要尽快开始接收响应的快速交互式客户端，此行为可能是可取的。
 
@@ -635,7 +635,7 @@ https://docs.nginx.com/nginx/admin-guide/web-server/serving-static-content/
 
 在高并发的情况下，后端server可能会出现大量的连接积压，最终拖垮server端。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659585458893-c276995d-f299-444b-bd33-cee5933ab878.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659585458893-c276995d-f299-444b-bd33-cee5933ab878.png)
 
 开启代理缓冲后，nginx可以用较快的速度尽可能将响应体读取并缓冲到本地内存或磁盘中，然后同时根据客户端的网络质量以合适的网速将响应传递给客户端。
 
@@ -669,7 +669,7 @@ location / {
 
 启用缓存后，nginx将响应保存在磁盘中，返回给客户端的数据首先从缓存中获取，这样子相同的请求不用每次都发送给后端服务器，减少到后端请求的数量。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659599505974-889b4227-80eb-4deb-8bae-303828cc3bc4.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659599505974-889b4227-80eb-4deb-8bae-303828cc3bc4.png)
 
 启用缓存，需要在http上下文中使用 [proxy_cache_path](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_path) 指令，定义缓存的本地文件目录，名称和大小。
 
@@ -783,7 +783,7 @@ http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_path
 
 ### 配置服务组
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659424182326-cbf92b95-7038-436a-bf74-d086ef1db637.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659424182326-cbf92b95-7038-436a-bf74-d086ef1db637.png)
 
 
 
@@ -865,11 +865,11 @@ upstream backend {
 
 假设我们基于 key 来做 hash，现在有 4 台上游服务器，如果 hash 算法对 key 取模，请求根据用户定义的哈希键值均匀分布在所有上游服务器之间。。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659518154051-3160e796-eeb0-47e9-9dff-204359a5c06b.png)当有一台服务器宕机的时候，就需要重新对 key 进行 hash，最后会发现所有的对应关系全都失效了，从而会引发缓存大范围失效。
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659518154051-3160e796-eeb0-47e9-9dff-204359a5c06b.png)当有一台服务器宕机的时候，就需要重新对 key 进行 hash，最后会发现所有的对应关系全都失效了，从而会引发缓存大范围失效。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659518106125-461a8771-50aa-4033-864c-43bc91f516d6.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659518106125-461a8771-50aa-4033-864c-43bc91f516d6.png)
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659518178713-4ea13d8a-6993-41ba-aa7d-29421fb7c650.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659518178713-4ea13d8a-6993-41ba-aa7d-29421fb7c650.png)
 
 #### 5.[‎随机‎](https://nginx.org/en/docs/http/ngx_http_upstream_module.html#random)‎  (random）
 
@@ -889,7 +889,7 @@ upstream backend {
 
 #### 6.权重（weight）
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659425649735-e2fdb0a4-5aaa-4a0e-81b3-44a8f7682c9c.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659425649735-e2fdb0a4-5aaa-4a0e-81b3-44a8f7682c9c.png)
 
 ```nginx
 upstream my-server {
@@ -1047,11 +1047,11 @@ stream {
 
 在最简单的 HTTP 实现中，客户端打开新连接，写入请求，读取响应，然后关闭连接以释放关联的资源。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659513123084-afe08b7c-223b-4b8c-8f47-9e1ee09a2303.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659513123084-afe08b7c-223b-4b8c-8f47-9e1ee09a2303.png)
 
 在客户端读取响应后，保持连接处于打开状态，因此可以将其重新用于后续请求。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1659513122399-c3e4f8c4-d154-4bc3-b073-6303c2ff67bd.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1659513122399-c3e4f8c4-d154-4bc3-b073-6303c2ff67bd.png)
 
 使用 [keepalive](https://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive) 指令启用从 NGINX Plus 到上游服务器的保持活动连接，定义在每个工作进程的缓存中保留的与上游服务器的空闲保持活动连接的最大数量。当超过此数字时，将关闭最近最少使用的连接。如果没有 keepalives，您将增加更多的开销，并且连接和临时端口都效率低下。
 
@@ -1120,13 +1120,13 @@ server {
 
 发向代理proxy_pass属于转发，浏览器的访问栏输入的地址不会发生变化。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1660027681278-8d232df3-69f1-4bb7-ae31-70dab5777cb7.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1660027681278-8d232df3-69f1-4bb7-ae31-70dab5777cb7.png)
 
 #### 重定向
 
 return，rewrite属于重定向，在客户端进行。浏览器的访问栏输入的地址会发生变化。
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1660014580821-4eae68ec-ecf6-45ef-a5a7-4e33a77efec9.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1660014580821-4eae68ec-ecf6-45ef-a5a7-4e33a77efec9.png)
 
 域名迁移，不让用户收藏的链接或者搜索引擎的链接失效
 
@@ -1288,7 +1288,7 @@ server {
 
 结果：
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/28915315/1660113329221-e8f2be96-2c99-4d9c-a3a7-ac6ea48f5992.png)
+![img](https://raw.githubusercontent.com/DunXi/images/main/img/1660113329221-e8f2be96-2c99-4d9c-a3a7-ac6ea48f5992.png)
 
 访问日志：
 
