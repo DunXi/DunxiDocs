@@ -114,6 +114,7 @@ function sidebarNetwork() {
         { text: 'Linux', link: '/network/Linux' },
         { text: '计算机网络', link: '/network/计算机网络' },
         { text: 'Nginx', link: '/network/Nginx' },
+        { text: 'Kubernetes', link: '/network/Kubernetes' },
         { text: '数据通信技术', link: '/network/数据通信技术' }
       ]
     }
