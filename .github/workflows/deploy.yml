@@ -8,28 +8,28 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:  # 👈 关键！必须添加
-      contents: write  # 授予写入权限
+    permissions:
+      contents: write
     
     steps:
-      - uses: actions/checkout@v4  # 升级到最新版
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
-      - uses: actions/setup-node@v4  # 升级到最新版
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18  # 建议升级到 LTS 版本
-          cache: yarn
+          node-version: 16
+          cache: npm
       
-      - run: yarn install --frozen-lockfile
+      - run: npm install --frozen-lockfile
 
       - name: Build
-        run: yarn docs:build
+        run: npm run docs:build
 
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4  # 👈 关键升级
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}  # 使用内置 token
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/.vitepress/dist
           # keep_files: true  # 如需保留历史文件可取消注释
           # cname: example.com # 如果需要自定义域名
