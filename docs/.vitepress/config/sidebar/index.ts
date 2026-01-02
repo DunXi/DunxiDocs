@@ -10,6 +10,17 @@ function sidebarDatabase() {
   ]
 }
 
+function sidebarGo() {
+  return [
+    {
+      text: 'Go',
+      items: [
+        { text: 'Go基础', link: '/go/' }
+      ]
+    }
+  ]
+}
+
 function sidebarPython() {
   return [
     {
@@ -27,7 +38,6 @@ function sidebarBlockchain() {
       text: '区块链',
       items: [
         { text: 'Solidity笔记', link: '/blockchain/Solidity' }
-        // { text: 'navicat安装', link: '/database/mysql/navicat' }
       ]
     }
   ]
@@ -38,7 +48,7 @@ function sidebarJava() {
     {
       text: 'Java',
       items: [
-        { text: 'java笔记', link: '/java/Java' },
+        { text: 'Java笔记', link: '/java/' },
         { text: '科学编程学习法', link: '/java/科学编程学习法' },
         { text: '软件开发环境安装教程', link: '/java/软件开发环境安装教程' }
         
@@ -87,6 +97,7 @@ function sidebarSpring() {
     }
   ]
 }
+
 function sidebarFrontend() {
   return [
     {
@@ -110,8 +121,8 @@ function sidebarNetwork() {
     {
       text: 'NetWork',
       items: [
-        { text: 'IPv6', link: '/network/IPV6' },
         { text: 'Linux', link: '/network/Linux' },
+        { text: 'IPv6', link: '/network/IPV6' },
         { text: '计算机网络', link: '/network/计算机网络' },
         { text: 'Nginx', link: '/network/Nginx' },
         { text: 'Kubernetes', link: '/network/Kubernetes' },
@@ -121,23 +132,12 @@ function sidebarNetwork() {
   ]
 }
 
-function sidebarFrameWork() {
-  return [
-
-    {
-      text: '架构师',
-      items: [
-        { text: '总体架构设计', link: '/framework/overall' }
-      ]
-    }
-  ]
-}
 export default {
-  '/database/': sidebarDatabase(),
-  '/java/': sidebarJava(),
+  '/database': sidebarDatabase(),
+  '/java': sidebarJava(),
   '/python': sidebarPython(),
   '/spring': sidebarSpring(),
   '/network': sidebarNetwork(),
-  '/blockchain': sidebarBlockchain()
-  // '/framework':sidebarFrameWork()
+  '/blockchain': sidebarBlockchain(),
+  '/go': sidebarGo()
 }

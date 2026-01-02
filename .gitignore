@@ -9,3 +9,142 @@ TODOs.md
 docs/.vitepress/cache
 docs/.vitepress/dist
 deploy.sh
+### Go ###
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# dlv debugger config
+.dlv
+
+# Go binaries
+bin/
+*.bin
+
+# Go build caches
+/pkg/
+
+# Go test cache
+/testcache/
+
+# Go coverage output
+coverage.out
+coverage.html
+
+### General ###
+# Logs
+*.log
+*.log.*
+log/
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports
+coverage/
+.coverage/
+*.lcov
+
+# Dependency directories
+vendor/
+node_modules/
+jspm_packages/
+
+# Editors and IDEs
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Emacs
+*~
+\#*\#
+.\#*
+.*.swp
+.*.swo
+
+# Vim
+.swp
+.swo
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# OS Generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+.env.local
+.env.*.local
+
+# Build artifacts
+build/
+dist/
+out/
+tmp/
+temp/
+
+# Configuration files
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+*.keystore
+config.json
+secrets.json
+
+# Docker
+docker-compose.override.yml
+!.dockerignore
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+*.mdb
+
+# Profiling files
+*.pprof
+*.prof
+
+# Fuzzing artifacts
+fuzz-*
